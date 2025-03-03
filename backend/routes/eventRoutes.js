@@ -3,6 +3,8 @@ const multer = require("multer");
 const Event = require("../models/Event");
 const { verifyToken, verifyNGO, isNGO, verifyAdmin, isAdmin } = require("../middleware/authMiddleware");
 
+
+
 const router = express.Router();
 
 // Function to sanitize file names (replace spaces with underscores)
@@ -21,6 +23,14 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage });
+
+// Dynamically determine the base URL for images
+const getBaseImageUrl = () => {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.BACKEND_BASEURL || "https://eth-volunteer-backend.vercel.app"; // Production URL
+  }
+  return "http://localhost:5000"; // Development URL
+};
 
 /**
  * @route   POST /api/events/create
