@@ -15,15 +15,31 @@ const Login = () => {
         body: JSON.stringify({ email, password }),
       });
 
+      // Check if the response is successful
+      if (!response.ok) {
+        let errorMessage = "Login failed.";
+        try {
+          // Attempt to parse the response as JSON
+          const data = await response.json();
+          errorMessage = data.message || errorMessage;
+        } catch (parseError) {
+          // Handle non-JSON responses
+          errorMessage = response.statusText || errorMessage;
+        }
+        alert(errorMessage);
+        return;
+      }
+
+      // Parse the JSON response if successful
       const data = await response.json();
 
-      if (response.ok && data.token) {
+      if (data.token) {
         localStorage.setItem("user", JSON.stringify(data));
 
         if (data.status === "blocked") {
           navigate("/blocked-user"); // Redirect to blocked page
           return;
-      }
+        }
 
         // Redirect based on user role
         if (data.role === "volunteer") {
@@ -32,14 +48,13 @@ const Login = () => {
           alert("Unknown role! Cannot determine where to navigate.");
         }
       } else {
-        alert(data.message || "Login failed!");
+        alert("Login failed!");
       }
     } catch (error) {
       console.error("Login error:", error);
       alert("An error occurred during login.");
     }
   };
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -70,8 +85,8 @@ const Login = () => {
         </form>
         <p className="text-center text-gray-600 mt-4">
           if you don't have account?{" "}
-          <span 
-            onClick={() => navigate("/register-volunteer")} 
+          <span
+            onClick={() => navigate("/register-volunteer")}
             className="text-blue-600 cursor-pointer hover:underline"
           >
             Register here

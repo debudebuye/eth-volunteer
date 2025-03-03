@@ -54,26 +54,35 @@ router.post("/register/ngo", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
     try {
-        const { email, password } = req.body;
+        // Find user by email
         const user = await User.findOne({ email });
-
         if (!user) {
-            return res.status(400).json({ message: "User not found" });
+            return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
+        // Validate password
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+            return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role }, "your_jwt_secret", { expiresIn: "1h" });
+        // Generate JWT token
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        res.json({ message: "Login successful", token, role: user.role });
+        res.json({
+            token,
+            role: user.role,
+            status: user.status,
+        });
     } catch (error) {
-        res.status(500).json({ message: "Login failed", error });
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
+
 
 router.post("/login-ngo", async (req, res) => {
     const { email, password } = req.body;
