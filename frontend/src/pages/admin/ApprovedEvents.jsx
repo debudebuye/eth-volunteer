@@ -11,7 +11,7 @@ const ApprovedEvents = () => {
 
   const fetchApprovedEvents = async () => {
     try {
-      const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/events/approved");
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/approved`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch approved events");
@@ -26,7 +26,7 @@ const ApprovedEvents = () => {
 
   const disapproveEvent = async (eventId) => {
     try {
-      const response = await fetch(`${import.meta.env.BACKEND_BASEURL}/api/events/disapprove/${eventId}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/events/disapprove/${eventId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +47,7 @@ const ApprovedEvents = () => {
 
   const deleteEvent = async (eventId) => {
     try {
-      const response = await fetch(`${import.meta.env.BACKEND_BASEURL}/api/events/delete/${eventId}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/events/delete/${eventId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

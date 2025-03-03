@@ -6,7 +6,9 @@ const ManageNGO = () => {
 
   useEffect(() => {
     // Fetch NGO users from the API
-    fetch("${import.meta.env.BACKEND_BASEURL}/api/ngo/ngo-users")
+    fetch(
+      `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/ngo/ngo-users`
+    )
       .then((res) => res.json())
       .then((data) => setNGOUsers(data))
       .catch((error) => console.error("Error fetching NGO users:", error));
@@ -16,7 +18,10 @@ const ManageNGO = () => {
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to delete this NGO?")) return;
 
-    fetch(`${import.meta.env.BACKEND_BASEURL}/api/ngo/ngo-users/${id}`, { method: "DELETE" })
+    fetch(
+      `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/ngo/ngo-users/${id}`,
+      { method: "DELETE" }
+    )
       .then((res) => res.json())
       .then(() => setNGOUsers(ngoUsers.filter((ngo) => ngo._id !== id)))
       .catch((error) => console.error("Error deleting NGO:", error));
@@ -24,15 +29,20 @@ const ManageNGO = () => {
 
   // Function to block/unblock NGO user
   const handleBlock = (id, status) => {
-    fetch(`${import.meta.env.BACKEND_BASEURL}/api/ngo/ngo-users/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    })
+    fetch(
+      `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/ngo/ngo-users/${id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      }
+    )
       .then((res) => res.json())
       .then((updatedUser) =>
         setNGOUsers(
-          ngoUsers.map((ngo) => (ngo._id === id ? { ...ngo, status: updatedUser.status } : ngo))
+          ngoUsers.map((ngo) =>
+            ngo._id === id ? { ...ngo, status: updatedUser.status } : ngo
+          )
         )
       )
       .catch((error) => console.error("Error updating NGO status:", error));

@@ -16,7 +16,7 @@ const RegisterNGO = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/auth/register/ngo", {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/auth/register/ngo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),

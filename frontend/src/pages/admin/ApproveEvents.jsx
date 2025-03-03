@@ -13,11 +13,11 @@ const ApproveEvents = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/events/pending", {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/pending`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch pending events");
+      if (!response.ok) throw new Error(" ");
 
       const data = await response.json();
       setEvents(data);
@@ -31,7 +31,7 @@ const ApproveEvents = () => {
 
   const updateEventStatus = async (id, status) => {
     try {
-      const response = await fetch(`${import.meta.env.BACKEND_BASEURL}/api/events/${status}/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/${status}/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

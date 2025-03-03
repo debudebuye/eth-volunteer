@@ -35,7 +35,7 @@ const CreateEvent = () => {
         const token = localStorage.getItem("token");
       
         try {
-          const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/events/create", {
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/create`, {
             method: "POST",
             body: eventData,
             headers: {

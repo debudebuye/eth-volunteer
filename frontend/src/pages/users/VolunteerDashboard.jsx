@@ -12,7 +12,7 @@ const VolunteerDashboard = () => {
     // Fetch approved events
     const fetchApprovedEvents = async () => {
       try {
-        const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/events/approved");
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/approved`);
         const data = await response.json();
         console.log("Fetched events:", data); // Log the events data
         setEvents(data);

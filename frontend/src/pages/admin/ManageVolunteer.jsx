@@ -5,7 +5,7 @@ const ManageVolunteer = () => {
 
   // Fetch users from the backend
   useEffect(() => {
-    fetch("${import.meta.env.BACKEND_BASEURL}/api/users") // Replace with your actual API endpoint
+    fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/users`) // Replace with your actual API endpoint
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error));
@@ -13,7 +13,7 @@ const ManageVolunteer = () => {
 
   // Handle delete action
   const handleDelete = (id) => {
-    fetch(`${import.meta.env.BACKEND_BASEURL}/api/users/${id}`, {
+    fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/users/${id}`, {
       method: "DELETE",
     })
       .then((res) => res.json())
@@ -27,7 +27,7 @@ const ManageVolunteer = () => {
   // Handle block action
   const handleBlock = async (id, isCurrentlyBlocked) => {
     try {
-      const response = await fetch(`${import.meta.env.BACKEND_BASEURL}/api/users/${id}/block`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/users/${id}/block`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isBlocked: !isCurrentlyBlocked }), // Toggle block/unblock

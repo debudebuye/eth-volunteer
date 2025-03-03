@@ -12,7 +12,7 @@ const RegisterVolunteer = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/auth/register/volunteer", { 
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/auth/register/volunteer`, { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

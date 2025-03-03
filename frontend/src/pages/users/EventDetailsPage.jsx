@@ -13,7 +13,7 @@ const EventDetailsPage = () => {
         // Fetch event details by ID
         const fetchEventDetails = async () => {
             try {
-                const response = await fetch(`${import.meta.env.BACKEND_BASEURL}/api/events/${eventId}`);
+                const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/${eventId}`);
                 const data = await response.json();
                 setEvent(data);
                 setLikes(data.likes); // Initialize likes from the event data

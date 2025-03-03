@@ -23,7 +23,7 @@ const AdminRegister = () => {
     }
 
     try {
-      const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/admin/register", {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/admin/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -21,20 +21,24 @@ const AdminLogin = () => {
     }
 
     try {
-      const response = await fetch("${import.meta.env.BACKEND_BASEURL}/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
-      });
+      // Use backticks for template literals
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/admin/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         // Store token and role in localStorage
         localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);  // Ensure role is saved
+        localStorage.setItem("role", data.role); // Ensure role is saved
 
         navigate("/admin-dashboard"); // Redirect to Admin Dashboard
       } else {
@@ -44,7 +48,6 @@ const AdminLogin = () => {
       setError("An error occurred while logging in");
     }
   };
-
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
