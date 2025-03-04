@@ -9,11 +9,15 @@ connectDB();
 
 // Enable CORS
 app.use(cors());
+
+
 // Optionally restrict CORS to specific origins in production
 if (process.env.NODE_ENV === "production") {
   app.use(
     cors({
       origin: "https://eth-volunteer.vercel.app", // Replace with your frontend domain
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true,
     })
   );
 }
