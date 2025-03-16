@@ -10,15 +10,39 @@ const { verifyToken, verifyNGO } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Register Volunteer
 router.post("/register/volunteer", async (req, res) => {
-    const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword, role: "volunteer" });
-
-    await user.save();
-    res.status(201).json({ message: "Volunteer registered successfully!" });
-});
+    const { name, email, password, location } = req.body; // Add location to destructuring
+  
+    try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Create a new user with the location field
+      const user = new User({
+        name,
+        email,
+        password: hashedPassword,
+        location, // Include the location field
+        role: "volunteer",
+      });
+  
+      // Save the user to the database
+      await user.save();
+  
+      // Respond with success message
+      res.status(201).json({ message: "Volunteer registered successfully!" });
+    } catch (error) {
+      console.error("Error registering volunteer:", error);
+  
+      // Handle duplicate email error
+      if (error.code === 11000) {
+        return res.status(400).json({ message: "Email already exists." });
+      }
+  
+      // Handle other errors
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
 // Register NGO
 
@@ -76,11 +100,18 @@ router.post("/login", async (req, res) => {
             { expiresIn: "1h" }
         );
 
-        res.json({
+        const userData = {
             token,
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            location: user.location,
             role: user.role,
-            status: user.status,
-        });
+            isBlocked: user.isBlocked,
+            createdAt: user.createdAt,
+          };
+      
+          res.status(200).json(userData);
     } catch (error) {
         console.error("Login error:", error);
         res.status(500).json({ message: "Server error" });

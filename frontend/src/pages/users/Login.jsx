@@ -32,14 +32,11 @@ const Login = () => {
 
       // Parse the JSON response if successful
       const data = await response.json();
+      console.log("Login response:", data); // Debugging
 
       if (data.token) {
+        // Save all user data in localStorage
         localStorage.setItem("user", JSON.stringify(data));
-
-        if (data.status === "blocked") {
-          navigate("/blocked-user"); // Redirect to blocked page
-          return;
-        }
 
         // Redirect based on user role
         if (data.role === "volunteer") {
@@ -55,6 +52,7 @@ const Login = () => {
       alert("An error occurred during login.");
     }
   };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">

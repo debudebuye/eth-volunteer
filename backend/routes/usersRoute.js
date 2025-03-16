@@ -59,4 +59,54 @@ router.patch("/users/:id/block", async (req, res) => {
     }
   });
 
+
+// Fetch user profile by email
+router.get("/profile/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    console.log("Fetching user profile for email:", email); // Debugging
+
+    if (!email) {
+      return res.status(400).json({ message: "Email parameter is required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      console.log("User not found in database"); // Debugging
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("User found:", user); // Debugging
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update user profile
+router.put("/update-profile", async (req, res) => {
+  const { email, name, location } = req.body;
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { name, location },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      console.log("User not found for email:", email); // Debugging
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Updated user:", updatedUser); // Debugging
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

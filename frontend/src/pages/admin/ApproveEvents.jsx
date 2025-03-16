@@ -38,16 +38,34 @@ const ApproveEvents = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-
+  
       if (!response.ok) throw new Error(`Failed to ${status} event`);
-
+  
       // Optimistically update state without refetching
       setEvents((prevEvents) => prevEvents.filter((event) => event._id !== id));
+  
+      // Send email notification if the event is approved
+      if (status === "approve") {
+        const emailResponse = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/send-email/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+  
+        if (!emailResponse.ok) {
+          const errorData = await emailResponse.json();
+          throw new Error(errorData.message || "Failed to send email notification");
+        }
+      }
     } catch (error) {
       console.error(`Error ${status}ing event:`, error);
+      setError(error.message); // Display the error to the user
     }
   };
 
+  
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h2 className="text-3xl font-semibold text-gray-800 mb-6">Approve/Reject NGO Event Posts</h2>

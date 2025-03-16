@@ -22,6 +22,7 @@ import RejectedEvents from "./pages/admin/RejectedEvents"
 import AdminRegister from "./pages/admin/AdminRegister"
 import ApproveEvents from "./pages/admin/ApproveEvents"
 import CreateEvent from "./pages/ngo/CreateEvent"
+import Profile from "./pages/users/Profile";
 
 
 const App = () => {
@@ -56,6 +57,7 @@ const App = () => {
         <Route path="/volunteerdashboard" element={<PrivateRoute role="volunteer"><VolunteerDashboard /></PrivateRoute>} />
         <Route path="/event/:eventId" element={<PrivateRoute role="volunteer"><EventDetailsPage /></PrivateRoute>} />
         <Route path="/user/UserBlocked" element={<PrivateRoute role="volunteer"><UserBlocked /></PrivateRoute>} />
+        <Route path="/user/editprofile" element={<PrivateRoute role="volunteer"><Profile /></PrivateRoute>} />
       
 
         

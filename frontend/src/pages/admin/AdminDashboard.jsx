@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { FaUsers, FaRegClipboard, FaCheck, FaTimes, FaSignOutAlt } from "react-icons/fa"; // Importing icons for the navigation
+import { useNavigate } from "react-router-dom";
+
 import ManageNGO from "./ManageNGO";
 import ManageVolunteer from "./ManageVolunteer";
 import ApproveEvents from "./ApproveEvents";
 import ApprovedEvents from "./ApprovedEvents";
 import RejectedEvents from "./RejectedEvents";
 
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("manage-ngo");
+  const navigate = useNavigate();
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("admin");
-    // navigate("/admin"); // No longer needed as we're not navigating away
+    navigate("/admin"); // No longer needed as we're not navigating away
   };
 
   return (
