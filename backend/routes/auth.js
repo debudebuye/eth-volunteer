@@ -107,16 +107,17 @@ router.post("/login", async (req, res) => {
             email: user.email,
             location: user.location,
             role: user.role,
-            isBlocked: user.isBlocked,
+            isBlocked: user.isBlocked, // Include the 'isBlocked' status here
             createdAt: user.createdAt,
-          };
-      
-          res.status(200).json(userData);
+        };
+
+        res.status(200).json(userData);
     } catch (error) {
         console.error("Login error:", error);
         res.status(500).json({ message: "Server error" });
     }
 });
+
 
 
 router.post("/login-ngo", async (req, res) => {
@@ -142,11 +143,12 @@ router.post("/login-ngo", async (req, res) => {
             { expiresIn: "1h" } // Token expiration time
         );
 
-        // Return the token and role in the response
+        // Return the token, role, and status in the response
         res.status(200).json({
             message: "Login successful",
             token,
             role: ngo.role, // Send the user role (NGO) to the frontend
+            status: ngo.status, // Send the status of the NGO to the frontend
         });
     } catch (error) {
         console.error(error);

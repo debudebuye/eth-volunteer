@@ -4,9 +4,6 @@ const NGO = require("../models/NGO");
 
 const secretKey = process.env.JWT_SECRET || "your_secret_key"; // Use environment variable for security
 
-/**
- * General Token Verification Middleware
- */
 const verifyToken = async (req, res, next) => {
   const token = req.header("Authorization");
 
@@ -15,19 +12,16 @@ const verifyToken = async (req, res, next) => {
   }
 
   try {
-    // Extract token from "Bearer <token>" format
     const tokenValue = token.startsWith("Bearer ") ? token.split(" ")[1] : token;
     const decoded = jwt.verify(tokenValue, secretKey);
-
-    // Store user data in request object
-    req.user = decoded;
+    console.log("Decoded Token:", decoded); // Log the decoded token
+    req.user = decoded; // Attach decoded payload to req.user
     next();
   } catch (error) {
     console.error("Token verification error:", error);
     res.status(401).json({ message: "Invalid token" });
   }
 };
-
 /**
  * Verify Admin Middleware
  */
@@ -52,13 +46,13 @@ const verifyAdmin = async (req, res, next) => {
  */
 const verifyNGO = async (req, res, next) => {
   try {
+    console.log("Verifying NGO with ID:", req.user.id); // Log the NGO ID
     const ngo = await NGO.findById(req.user.id);
-
     if (!ngo) {
       return res.status(404).json({ message: "NGO not found" });
     }
-
-    req.user = ngo; // Attach NGO data to request object
+    console.log("NGO Found:", ngo); // Log the NGO data
+    req.user.ngo = ngo; // Attach NGO data to req.user
     next();
   } catch (error) {
     console.error("NGO verification error:", error);
@@ -80,10 +74,12 @@ const isAdmin = (req, res, next) => {
  * Role-Based Middleware for NGOs
  */
 const isNGO = (req, res, next) => {
+  console.log("User Role:", req.user.role); // Log the user role
   if (!req.user || req.user.role !== "ngo") {
     return res.status(403).json({ message: "Access denied. Only NGOs are allowed." });
   }
   next();
 };
+
 
 module.exports = { verifyToken, verifyAdmin, verifyNGO, isAdmin, isNGO };

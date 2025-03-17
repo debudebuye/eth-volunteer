@@ -109,4 +109,69 @@ router.put("/update-profile", async (req, res) => {
   }
 });
 
+router.post('/join-event', async (req, res) => { 
+  const { userId, eventId } = req.body;
+
+  try {
+    // Find the user and update their joinedEvents array
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the event is already joined
+    if (user.joinedEvents.includes(eventId)) {
+      return res.status(400).json({ message: 'Event already joined' });
+    }
+
+    // Add the event ID to the joinedEvents array
+    user.joinedEvents.push(eventId);
+    await user.save();
+
+    res.status(200).json({ message: 'Event joined successfully', user });
+  } catch (error) {
+    console.error('Error joining event:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Backend endpoint to fetch joined events
+router.get("/joined-events", async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const user = await User.findById(userId).populate("joinedEvents");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user.joinedEvents);
+  } catch (error) {
+    console.error("Error fetching joined events:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});  
+
+// Endpoint to unjoin an event
+router.post("/unjoin-event", async (req, res) => {
+  const { userId, eventId } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove the event ID from the joinedEvents array
+    user.joinedEvents = user.joinedEvents.filter((id) => id.toString() !== eventId);
+    await user.save();
+
+    res.status(200).json({ message: "Unjoined successfully", user });
+  } catch (error) {
+    console.error("Error unjoining event:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+ 
+
 module.exports = router;

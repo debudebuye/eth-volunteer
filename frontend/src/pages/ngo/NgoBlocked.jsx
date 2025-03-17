@@ -3,6 +3,15 @@ import { useNavigate } from "react-router-dom";
 const NgoBlocked = () => {
     const navigate = useNavigate();
 
+
+    const handleHomepage = () => {
+        localStorage.removeItem("user");
+        localStorage.removeItem("ngo");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        navigate("/ngo");
+      };
+
     return (
         <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
@@ -15,7 +24,9 @@ const NgoBlocked = () => {
                 <p className="text-blue-600 font-medium mb-6">support@ngo-platform.com</p>
 
                 <button
-                    onClick={() => navigate("/ngo")}
+                    // onClick={() => navigate("/ngo")}
+          onClick={handleHomepage}
+
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all"
                 >
                     Return to Homepage

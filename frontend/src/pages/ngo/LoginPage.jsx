@@ -12,42 +12,47 @@ const LoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
-
+    
         if (!email || !password) {
             setError("Please fill in all fields.");
             setIsLoading(false);
             return;
         }
-
+    
         try {
             const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/auth/login-ngo`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
-
+    
             const data = await response.json();
-
             
-
+            // Log the data to verify the status value
+            console.log("Login Response Data:", data);
+    
             if (response.ok && data.token) {
-
-
                 if (data.status === "blocked") {
-                    navigate("/blocked-ngo"); // Redirect to blocked page
+                    navigate("/ngo/blocked-ngo"); // Redirect to blocked page
+                    
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("role", data.role);
+                    localStorage.setItem("ngo", JSON.stringify({ role: data.role }));
+        
+                    
                     return;
                 }
-
                 
+    
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("role", data.role);
-                localStorage.setItem("ngo", JSON.stringify({ role: data.role })); // Store NGO object
-
+                localStorage.setItem("ngo", JSON.stringify({ role: data.role }));
+    
                 navigate("/ngodashboard");
             } else {
                 setError(data.message || "Login failed!");
             }
-
+    
         } catch (error) {
             console.error("Login error:", error);
             setError("An error occurred during login.");
@@ -55,7 +60,7 @@ const LoginPage = () => {
             setIsLoading(false);
         }
     };
-
+    
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">

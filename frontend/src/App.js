@@ -7,6 +7,9 @@ import EventDetailsPage from "./pages/users/EventDetailsPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/ngo/LoginPage";
 import NgoBlocked from "./pages/ngo/NgoBlocked";
+import ManageEvents from "./pages/ngo/ManageEvents";
+import TrackEvents from "./pages/ngo/TrackEvents";
+import EditEvent from "./pages/ngo/EditEvent"
 import Login from "./pages/users/Login";
 import UserBlocked from "./pages/users/UserBlocked";
 import PrivateRoute from "./components/Protected/PrivateRoute";
@@ -75,6 +78,10 @@ const App = () => {
         <Route path="/ngodashboard" element={<NgoRoute role="ngo"><NGODashboard /></NgoRoute>} />        
         <Route path="/ngo/create-event" element={<NgoRoute role="ngo"><CreateEvent /></NgoRoute>}/>
         <Route path="/ngo/blocked-ngo" element={<NgoRoute role="ngo"><NgoBlocked /></NgoRoute>}/>
+
+        <Route path="/ngo/manage-events" element={<NgoRoute role="ngo"> <ManageEvents /></NgoRoute>} />
+        <Route path="/ngo/edit-event/:eventId" element={<NgoRoute role="ngo"> <EditEvent /></NgoRoute>} />
+        <Route path="/ngo/track-events" element={<NgoRoute role="ngo"> <TrackEvents /></NgoRoute>} />
 
 
 

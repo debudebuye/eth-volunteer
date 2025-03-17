@@ -35,6 +35,16 @@ const Login = () => {
       console.log("Login response:", data); // Debugging
 
       if (data.token) {
+        // Check if the user is blocked
+        if (data.isBlocked) {
+          // Redirect to blocked page
+         
+          navigate("/user/UserBlocked");
+        localStorage.setItem("user", JSON.stringify(data));
+
+          return;
+        }
+
         // Save all user data in localStorage
         localStorage.setItem("user", JSON.stringify(data));
 
@@ -52,6 +62,9 @@ const Login = () => {
       alert("An error occurred during login.");
     }
   };
+
+
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">

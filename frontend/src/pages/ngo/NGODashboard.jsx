@@ -5,10 +5,12 @@ const NgoDashboard = () => {
 
   console.log(localStorage.getItem("token"));
 
-
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/login");
+    localStorage.removeItem("ngo");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/login-ngo");
   };
 
   return (
@@ -29,19 +31,32 @@ const NgoDashboard = () => {
         <h2 className="text-2xl font-bold mb-4">Welcome, NGO</h2>
         <p className="text-gray-700">Manage your events, track volunteer participation, and more.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          {/* Create Event Card */}
           <div
             className="bg-white p-6 shadow-lg rounded-lg text-center cursor-pointer hover:bg-gray-100"
             onClick={() => navigate("/ngo/create-event")}
           >
             <h3 className="text-lg font-bold">📅 Create Event</h3>
             <p className="text-gray-600">Post and manage your events.</p>
-
-            
           </div>
-          <div className="bg-white p-6 shadow-lg rounded-lg text-center">
-            <h3 className="text-lg font-bold">📊 Track Volunteers</h3>
-            <p className="text-gray-600">Monitor volunteer engagement and participation.</p>
+
+          {/* Manage Events Card */}
+          <div
+            className="bg-white p-6 shadow-lg rounded-lg text-center cursor-pointer hover:bg-gray-100"
+            onClick={() => navigate("/ngo/manage-events")}
+          >
+            <h3 className="text-lg font-bold">🛠️ Manage Events</h3>
+            <p className="text-gray-600">Update or delete your events.</p>
+          </div>
+
+          {/* Track Events Card */}
+          <div
+            className="bg-white p-6 shadow-lg rounded-lg text-center cursor-pointer hover:bg-gray-100"
+            onClick={() => navigate("/ngo/track-events")}
+          >
+            <h3 className="text-lg font-bold">📊 Track Events</h3>
+            <p className="text-gray-600">View comments, likes, and participants.</p>
           </div>
         </div>
       </div>
