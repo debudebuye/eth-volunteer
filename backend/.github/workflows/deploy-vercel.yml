@@ -1,0 +1,55 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
+          JWT_SECRET: test-secret-key
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          echo "🚀 Your API is live!"
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          exit 1

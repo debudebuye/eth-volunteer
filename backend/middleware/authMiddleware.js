@@ -2,32 +2,56 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../models/admin");
 const NGO = require("../models/NGO");
 
-const secretKey = process.env.JWT_SECRET || "your_secret_key"; // Use environment variable for security
+const secretKey = process.env.JWT_SECRET;
 
+if (!secretKey) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
+/**
+ * Verify Token Middleware
+ * Validates JWT token and attaches decoded user info to request
+ */
 const verifyToken = async (req, res, next) => {
-  const token = req.header("Authorization");
+  const authHeader = req.header("Authorization");
 
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({ message: "Access Denied: No token provided" });
   }
 
   try {
-    const tokenValue = token.startsWith("Bearer ") ? token.split(" ")[1] : token;
-    const decoded = jwt.verify(tokenValue, secretKey);
-    console.log("Decoded Token:", decoded); // Log the decoded token
+    // Extract token from "Bearer <token>" format
+    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
+    
+    if (!token) {
+      return res.status(401).json({ message: "Access Denied: Invalid token format" });
+    }
+
+    const decoded = jwt.verify(token, secretKey);
     req.user = decoded; // Attach decoded payload to req.user
     next();
   } catch (error) {
-    console.error("Token verification error:", error);
-    res.status(401).json({ message: "Invalid token" });
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    return res.status(401).json({ message: "Token verification failed" });
   }
 };
+
 /**
  * Verify Admin Middleware
+ * Ensures the authenticated user is an admin
  */
 const verifyAdmin = async (req, res, next) => {
   try {
-    const admin = await Admin.findById(req.user.id);
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const admin = await Admin.findById(req.user.id).select("-password");
 
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
@@ -43,15 +67,24 @@ const verifyAdmin = async (req, res, next) => {
 
 /**
  * Verify NGO Middleware
+ * Ensures the authenticated user is an NGO
  */
 const verifyNGO = async (req, res, next) => {
   try {
-    console.log("Verifying NGO with ID:", req.user.id); // Log the NGO ID
-    const ngo = await NGO.findById(req.user.id);
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const ngo = await NGO.findById(req.user.id).select("-password");
+    
     if (!ngo) {
       return res.status(404).json({ message: "NGO not found" });
     }
-    console.log("NGO Found:", ngo); // Log the NGO data
+
+    if (ngo.status === "blocked") {
+      return res.status(403).json({ message: "Your account has been blocked" });
+    }
+
     req.user.ngo = ngo; // Attach NGO data to req.user
     next();
   } catch (error) {
@@ -74,12 +107,10 @@ const isAdmin = (req, res, next) => {
  * Role-Based Middleware for NGOs
  */
 const isNGO = (req, res, next) => {
-  console.log("User Role:", req.user.role); // Log the user role
   if (!req.user || req.user.role !== "ngo") {
     return res.status(403).json({ message: "Access denied. Only NGOs are allowed." });
   }
   next();
 };
-
 
 module.exports = { verifyToken, verifyAdmin, verifyNGO, isAdmin, isNGO };

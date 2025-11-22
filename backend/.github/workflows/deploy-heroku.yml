@@ -1,0 +1,46 @@
+name: Deploy to Heroku
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Heroku
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
+          JWT_SECRET: test-secret-key
+
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          healthcheck: "https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com/health"
+          checkstring: "healthy"
+          delay: 5
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Deployment to Heroku successful!"
+          echo "🚀 API URL: https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com"
