@@ -27,7 +27,7 @@ const sanitizeObject = (obj) => {
   const sanitized = Array.isArray(obj) ? [] : {};
 
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       sanitized[key] = typeof obj[key] === 'object' 
         ? sanitizeObject(obj[key])
         : sanitizeString(obj[key]);

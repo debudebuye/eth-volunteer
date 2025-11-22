@@ -295,7 +295,7 @@ class EventService {
       throw new NotFoundError('Event not found');
     }
 
-    const updatedEvent = await eventRepository.addComment(eventId, {
+    await eventRepository.addComment(eventId, {
       userId,
       text,
     });

@@ -1,4 +1,5 @@
 // Global error handler middleware
+// eslint-disable-next-line no-unused-vars
 const errorHandler = (err, req, res, next) => {
   // Log error for debugging (in production, use proper logging service)
   console.error('Error:', {
@@ -28,6 +29,7 @@ const errorHandler = (err, req, res, next) => {
 };
 
 // 404 handler
+// eslint-disable-next-line no-unused-vars
 const notFoundHandler = (req, res, next) => {
   res.status(404).json({ 
     message: `Route ${req.originalUrl} not found` 
