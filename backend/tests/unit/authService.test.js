@@ -6,6 +6,10 @@ const { ConflictError, UnauthorizedError } = require('../../src/utils/errors');
 jest.mock('../../src/repositories/userRepository');
 jest.mock('../../src/utils/logger');
 
+// Set test environment variables
+process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing';
+process.env.NODE_ENV = 'test';
+
 describe('AuthService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
