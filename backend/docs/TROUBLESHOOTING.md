@@ -23,20 +23,22 @@ This error occurs when:
 4. Verify the cluster name matches your connection string
 
 #### Solution 2: Update Connection String
-Your current connection string:
+Example connection string format:
 ```
-mongodb+srv://duplex:duplex@cluster0.lprmy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 ```
 
 **Option A: Add Database Name**
 ```env
-MONGO_URI=mongodb+srv://duplex:duplex@cluster0.lprmy.mongodb.net/volunteer-db?retryWrites=true&w=majority&appName=Cluster0
+MONGO_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.xxxxx.mongodb.net/volunteer-db?retryWrites=true&w=majority&appName=Cluster0
 ```
 
 **Option B: Use Standard Connection (not SRV)**
 ```env
-MONGO_URI=mongodb://duplex:duplex@cluster0-shard-00-00.lprmy.mongodb.net:27017,cluster0-shard-00-01.lprmy.mongodb.net:27017,cluster0-shard-00-02.lprmy.mongodb.net:27017/volunteer-db?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority
+MONGO_URI=mongodb://USERNAME:PASSWORD@cluster0-shard-00-00.xxxxx.mongodb.net:27017,cluster0-shard-00-01.xxxxx.mongodb.net:27017,cluster0-shard-00-02.xxxxx.mongodb.net:27017/volunteer-db?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority
 ```
+
+Replace `USERNAME` and `PASSWORD` with your actual MongoDB credentials.
 
 #### Solution 3: Whitelist Your IP Address
 1. Go to MongoDB Atlas Dashboard
