@@ -354,3 +354,5 @@ For issues and questions:
 - Initial release
 - Basic CRUD operations
 - JWT authentication
+#   C I / C D   i s   n o w   c o n f i g u r e d  
+ 
