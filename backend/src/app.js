@@ -1,8 +1,14 @@
 require('dotenv').config();
+
+// Validate environment variables before initializing app
+const validateEnv = require('./utils/validateEnv');
+validateEnv();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -10,6 +16,7 @@ const connectDB = require('../config/db');
 const logger = require('./utils/logger');
 const { errorHandler, notFoundHandler } = require('../middleware/errorHandler');
 const sanitizeInput = require('../middleware/sanitize');
+const performanceMonitor = require('./middleware/performanceMonitor');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -40,8 +47,22 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Performance monitoring
+app.use(performanceMonitor);
+
 // Request logging
 app.use(morgan('combined', { stream: logger.stream }));
+
+// Compression middleware (gzip)
+app.use(compression({
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6, // Compression level (0-9)
+}));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -91,7 +112,18 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'Ethiopian Volunteer Platform API',
 }));
 
-// API routes
+// API v1 routes (versioned)
+const apiV1 = express.Router();
+
+apiV1.use('/auth', authRoutes);
+apiV1.use('/admin', adminRoutes);
+apiV1.use('/users', userRoutes);
+apiV1.use('/ngo', ngoRoutes);
+apiV1.use('/events', eventRoutes);
+
+app.use('/api/v1', apiV1);
+
+// Legacy routes (backward compatibility - will be deprecated)
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', userRoutes);

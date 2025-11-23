@@ -11,6 +11,12 @@ const ngoSchema = new mongoose.Schema({
 
 });
 
+// Indexes for performance optimization
+// Note: email already has unique index, no need to add explicit index
+ngoSchema.index({ status: 1 }); // For filtering active/blocked NGOs
+ngoSchema.index({ organization: 1 }); // For searching by organization
+ngoSchema.index({ createdAt: -1 }); // For sorting by registration date
+
 const NGO = mongoose.model("NGO", ngoSchema);
 
 module.exports = NGO; 

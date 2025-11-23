@@ -7,13 +7,26 @@ const connectDB = require('../../config/db');
 jest.mock('../../config/db');
 jest.mock('../../src/utils/logger');
 
+// Set test timeout
+jest.setTimeout(10000);
+
 describe('Auth Integration Tests', () => {
+  let server;
+
   beforeAll(() => {
     connectDB.mockImplementation(() => Promise.resolve());
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll((done) => {
+    if (server) {
+      server.close(done);
+    } else {
+      done();
+    }
   });
 
   describe('POST /api/auth/register/volunteer', () => {

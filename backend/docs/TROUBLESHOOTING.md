@@ -138,7 +138,7 @@ If you need to get started quickly, use MongoDB Atlas free tier:
 
 5. **Update .env**
    ```env
-   MONGO_URI=mongodb+srv://volunteer-admin:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/volunteer-db?retryWrites=true&w=majority
+   MONGO_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/volunteer-db?retryWrites=true&w=majority
    ```
 
 ## Other Common Issues

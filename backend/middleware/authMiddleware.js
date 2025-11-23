@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/admin");
 const NGO = require("../models/NGO");
+const logger = require("../src/utils/logger");
 
 const secretKey = process.env.JWT_SECRET;
 
@@ -60,7 +61,7 @@ const verifyAdmin = async (req, res, next) => {
     req.user = admin; // Attach admin data to request object
     next();
   } catch (error) {
-    console.error("Admin verification error:", error);
+    logger.error("Admin verification error:", error);
     res.status(500).json({ message: "Server error during admin verification" });
   }
 };
@@ -88,7 +89,7 @@ const verifyNGO = async (req, res, next) => {
     req.user.ngo = ngo; // Attach NGO data to req.user
     next();
   } catch (error) {
-    console.error("NGO verification error:", error);
+    logger.error("NGO verification error:", error);
     res.status(500).json({ message: "Server error during NGO verification" });
   }
 };

@@ -29,4 +29,12 @@ const EventSchema = new mongoose.Schema({
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
+// Indexes for performance optimization
+EventSchema.index({ status: 1 }); // For filtering by status (pending, approved, rejected)
+EventSchema.index({ date: 1 }); // For sorting/filtering by date
+EventSchema.index({ location: 1 }); // For location-based queries
+EventSchema.index({ createdBy: 1 }); // For NGO's events queries
+EventSchema.index({ likes: -1 }); // For sorting by popularity
+EventSchema.index({ status: 1, date: 1 }); // Compound index for approved events by date
+
 module.exports = mongoose.model("Event", EventSchema); 

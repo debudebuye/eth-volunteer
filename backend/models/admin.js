@@ -23,4 +23,7 @@ const adminSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+// Indexes for performance optimization
+// Note: email already has unique index, no need to add explicit index
+
 module.exports = mongoose.model("Admin", adminSchema);

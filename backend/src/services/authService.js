@@ -17,7 +17,7 @@ const logger = require('../utils/logger');
  */
 class AuthService {
   /**
-   * Generate JWT token
+   * Generate JWT access token
    */
   generateToken(payload) {
     if (!process.env.JWT_SECRET) {
@@ -26,6 +26,64 @@ class AuthService {
     return jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: TOKEN_EXPIRY.ACCESS_TOKEN,
     });
+  }
+
+  /**
+   * Generate JWT refresh token
+   */
+  generateRefreshToken(payload) {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: TOKEN_EXPIRY.REFRESH_TOKEN,
+    });
+  }
+
+  /**
+   * Verify refresh token
+   */
+  verifyRefreshToken(token) {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedError('Refresh token expired');
+      }
+      if (error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedError('Invalid refresh token');
+      }
+      throw new UnauthorizedError('Token verification failed');
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  async refreshAccessToken(refreshToken) {
+    // Verify refresh token
+    const decoded = this.verifyRefreshToken(refreshToken);
+
+    // Generate new access token
+    const newAccessToken = this.generateToken({
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+    });
+
+    logger.info(`Access token refreshed for user: ${decoded.email || decoded.id}`);
+
+    return {
+      accessToken: newAccessToken,
+      user: {
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.role,
+      },
+    };
   }
 
   /**
@@ -164,16 +222,23 @@ class AuthService {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Generate token
-    const token = this.generateToken({
+    // Generate tokens
+    const accessToken = this.generateToken({
       id: user._id,
+      email: user.email,
+      role: user.role,
+    });
+    const refreshToken = this.generateRefreshToken({
+      id: user._id,
+      email: user.email,
       role: user.role,
     });
 
     logger.info(`Volunteer logged in: ${email}`);
 
     return {
-      token,
+      token: accessToken,
+      refreshToken,
       user: {
         _id: user._id,
         name: user.name,
@@ -207,8 +272,13 @@ class AuthService {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Generate token
-    const token = this.generateToken({
+    // Generate tokens
+    const accessToken = this.generateToken({
+      id: ngo._id,
+      email: ngo.email,
+      role: ngo.role,
+    });
+    const refreshToken = this.generateRefreshToken({
       id: ngo._id,
       email: ngo.email,
       role: ngo.role,
@@ -217,7 +287,8 @@ class AuthService {
     logger.info(`NGO logged in: ${email}`);
 
     return {
-      token,
+      token: accessToken,
+      refreshToken,
       ngo: {
         _id: ngo._id,
         name: ngo.name,
@@ -245,8 +316,13 @@ class AuthService {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    // Generate token
-    const token = this.generateToken({
+    // Generate tokens
+    const accessToken = this.generateToken({
+      id: admin._id,
+      email: admin.email,
+      role: admin.role,
+    });
+    const refreshToken = this.generateRefreshToken({
       id: admin._id,
       email: admin.email,
       role: admin.role,
@@ -255,7 +331,8 @@ class AuthService {
     logger.info(`Admin logged in: ${email}`);
 
     return {
-      token,
+      token: accessToken,
+      refreshToken,
       admin: {
         _id: admin._id,
         name: admin.name,

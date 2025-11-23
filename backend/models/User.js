@@ -16,4 +16,10 @@ const userSchema = new mongoose.Schema({
   ], // Array of joined event IDs
 });
 
+// Indexes for performance optimization
+// Note: email already has unique index, no need to add explicit index
+userSchema.index({ isBlocked: 1 }); // For filtering blocked users
+userSchema.index({ createdAt: -1 }); // For sorting by registration date
+userSchema.index({ location: 1 }); // For location-based queries
+
 module.exports = mongoose.model("User", userSchema);

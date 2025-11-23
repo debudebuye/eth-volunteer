@@ -44,6 +44,22 @@ class AuthController {
     const result = await authService.loginNGO(email, password);
     successResponse(res, result, 'Login successful');
   });
+
+  /**
+   * Refresh access token
+   * POST /api/auth/refresh
+   */
+  refreshToken = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required',
+      });
+    }
+    const result = await authService.refreshAccessToken(refreshToken);
+    successResponse(res, result, 'Token refreshed successfully');
+  });
 }
 
 module.exports = new AuthController();
