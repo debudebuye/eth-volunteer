@@ -1,6 +1,6 @@
 const express = require('express');
 const eventController = require('../controllers/eventController');
-const { verifyToken, verifyNGO, isNGO, verifyAdmin, isAdmin } = require('../../middleware/authMiddleware');
+const { verifyToken, verifyNGO, verifyAdmin } = require('../../middleware/authMiddleware');
 const { validateEventCreation, validateComment } = require('../../middleware/validator');
 const upload = require('../../middleware/upload');
 
@@ -24,7 +24,6 @@ router.post(
   '/create',
   verifyToken,
   verifyNGO,
-  isNGO,
   upload.single('image'),
   validateEventCreation,
   eventController.createEvent
@@ -34,7 +33,6 @@ router.get(
   '/events',
   verifyToken,
   verifyNGO,
-  isNGO,
   eventController.getEventsByNGO
 );
 
@@ -42,7 +40,6 @@ router.get(
   '/track',
   verifyToken,
   verifyNGO,
-  isNGO,
   eventController.getEventsByNGOWithDetails
 );
 
@@ -50,7 +47,6 @@ router.put(
   '/update/:eventId',
   verifyToken,
   verifyNGO,
-  isNGO,
   eventController.updateEvent
 );
 
@@ -58,7 +54,6 @@ router.delete(
   '/delete/:eventId',
   verifyToken,
   verifyNGO,
-  isNGO,
   eventController.deleteEvent
 );
 
@@ -66,7 +61,6 @@ router.post(
   '/:eventId/comments/:commentId/reply',
   verifyToken,
   verifyNGO,
-  isNGO,
   validateComment,
   eventController.addReply
 );
@@ -76,7 +70,6 @@ router.get(
   '/pending',
   verifyToken,
   verifyAdmin,
-  isAdmin,
   eventController.getPendingEvents
 );
 
@@ -84,7 +77,6 @@ router.get(
   '/rejected',
   verifyToken,
   verifyAdmin,
-  isAdmin,
   eventController.getRejectedEvents
 );
 
@@ -92,7 +84,6 @@ router.put(
   '/approve/:id',
   verifyToken,
   verifyAdmin,
-  isAdmin,
   eventController.approveEvent
 );
 
@@ -100,7 +91,6 @@ router.put(
   '/reject/:id',
   verifyToken,
   verifyAdmin,
-  isAdmin,
   eventController.rejectEvent
 );
 
@@ -108,7 +98,6 @@ router.put(
   '/disapprove/:id',
   verifyToken,
   verifyAdmin,
-  isAdmin,
   eventController.disapproveEvent
 );
 
@@ -116,7 +105,6 @@ router.put(
   '/unreject/:id',
   verifyToken,
   verifyAdmin,
-  isAdmin,
   eventController.unrejectEvent
 );
 

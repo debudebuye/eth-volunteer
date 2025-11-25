@@ -14,7 +14,15 @@ const performanceMonitor = (req, res, next) => {
   res.end = function(...args) {
     const duration = Date.now() - startTime;
     
-    // Log request details
+    // Add performance header BEFORE ending response
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${duration}ms`);
+    }
+    
+    // Call original end function
+    originalEnd.apply(res, args);
+    
+    // Log request details AFTER response is sent
     const logData = {
       method: req.method,
       path: req.path,
@@ -29,12 +37,6 @@ const performanceMonitor = (req, res, next) => {
     } else if (duration > 500) {
       logger.info('Request completed', logData);
     }
-
-    // Add performance header
-    res.setHeader('X-Response-Time', `${duration}ms`);
-
-    // Call original end function
-    originalEnd.apply(res, args);
   };
 
   next();

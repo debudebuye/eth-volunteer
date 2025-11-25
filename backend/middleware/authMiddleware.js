@@ -45,11 +45,17 @@ const verifyToken = async (req, res, next) => {
 /**
  * Verify Admin Middleware
  * Ensures the authenticated user is an admin
+ * Should be used after verifyToken
  */
 const verifyAdmin = async (req, res, next) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Check role from token first
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Only admins are allowed." });
     }
 
     const admin = await Admin.findById(req.user.id).select("-password");
@@ -58,7 +64,8 @@ const verifyAdmin = async (req, res, next) => {
       return res.status(404).json({ message: "Admin not found" });
     }
 
-    req.user = admin; // Attach admin data to request object
+    // Attach full admin data to request object
+    req.user.admin = admin;
     next();
   } catch (error) {
     logger.error("Admin verification error:", error);
@@ -69,11 +76,17 @@ const verifyAdmin = async (req, res, next) => {
 /**
  * Verify NGO Middleware
  * Ensures the authenticated user is an NGO
+ * Should be used after verifyToken
  */
 const verifyNGO = async (req, res, next) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Check role from token first
+    if (req.user.role !== "ngo") {
+      return res.status(403).json({ message: "Access denied. Only NGOs are allowed." });
     }
 
     const ngo = await NGO.findById(req.user.id).select("-password");
@@ -86,7 +99,8 @@ const verifyNGO = async (req, res, next) => {
       return res.status(403).json({ message: "Your account has been blocked" });
     }
 
-    req.user.ngo = ngo; // Attach NGO data to req.user
+    // Attach full NGO data to req.user
+    req.user.ngo = ngo;
     next();
   } catch (error) {
     logger.error("NGO verification error:", error);
