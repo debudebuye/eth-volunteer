@@ -1,65 +1,44 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const result = await login({ email, password }, 'volunteer');
 
-      // Check if the response is successful
-      if (!response.ok) {
-        let errorMessage = "Login failed.";
-        try {
-          // Attempt to parse the response as JSON
-          const data = await response.json();
-          errorMessage = data.message || errorMessage;
-        } catch (parseError) {
-          // Handle non-JSON responses
-          errorMessage = response.statusText || errorMessage;
-        }
-        alert(errorMessage);
-        return;
-      }
+      if (result.success) {
+        const { user } = result;
 
-      // Parse the JSON response if successful
-      const data = await response.json();
-      console.log("Login response:", data); // Debugging
-
-      if (data.token) {
         // Check if the user is blocked
-        if (data.isBlocked) {
-          // Redirect to blocked page
-         
+        if (user.isBlocked) {
           navigate("/user/UserBlocked");
-        localStorage.setItem("user", JSON.stringify(data));
-
           return;
         }
 
-        // Save all user data in localStorage
-        localStorage.setItem("user", JSON.stringify(data));
-
         // Redirect based on user role
-        if (data.role === "volunteer") {
+        if (user.role === "volunteer") {
           navigate("/volunteerdashboard");
         } else {
           alert("Unknown role! Cannot determine where to navigate.");
         }
       } else {
-        alert("Login failed!");
+        alert(result.error || "Login failed!");
       }
     } catch (error) {
       console.error("Login error:", error);
       alert("An error occurred during login.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,9 +68,10 @@ const Login = () => {
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
         <p className="text-center text-gray-600 mt-4">

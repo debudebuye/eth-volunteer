@@ -1,14 +1,14 @@
 import { Navigate } from "react-router-dom";
+import useAuthStore from "../../store/authStore";
 
 const AdminRoute = ({ children, role }) => {
-  const storedRole = localStorage.getItem("role");
+  const { isAuthenticated, user } = useAuthStore();
 
-  // Log the stored role for debugging
-  console.log("Stored Role:", storedRole);
-  console.log("Expected Role:", role);
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/admin" replace />;
+  }
 
-  // If the stored role doesn't match the required role, redirect to login
-  if (storedRole !== role) {
+  if (role && user.role !== role) {
     return <Navigate to="/admin" replace />;
   }
 

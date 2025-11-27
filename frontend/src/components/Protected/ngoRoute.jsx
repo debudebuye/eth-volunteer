@@ -1,8 +1,18 @@
 import { Navigate } from "react-router-dom";
+import useAuthStore from "../../store/authStore";
 
 const NgoRoute = ({ children, role }) => {
-  const storedRole = localStorage.getItem("role");
-  return storedRole === role ? children : <Navigate to="/login-ngo" />;
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login-ngo" replace />;
+  }
+
+  if (role && user.role !== role) {
+    return <Navigate to="/ngo" replace />;
+  }
+
+  return children;
 };
 
 export default NgoRoute;

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Admin from "./pages/admin/AdminLogin";
 import NGODashboard from "./pages/ngo/NGODashboard";
@@ -30,8 +31,9 @@ import Profile from "./pages/users/Profile";
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
 
         {/* Default Routes */}
         <Route path="/" element={<HomePage />} />
@@ -85,8 +87,9 @@ const App = () => {
 
 
 
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 };
 
