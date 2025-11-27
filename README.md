@@ -33,7 +33,7 @@ A comprehensive full-stack web platform that connects Ethiopian volunteers with 
 
 This project features **two backend implementations** with identical functionality:
 
-- **Express.js Backend** (`/backend`) - Traditional Node.js/Express architecture with proven stability
+- **Express.js Backend** (`/backend-express`) - Traditional Node.js/Express architecture with proven stability
 - **NestJS Backend** (`/backend-nestjs`) - Modern TypeScript framework with enhanced performance and scalability
 
 Both backends provide the same API endpoints and features, allowing you to choose based on your performance requirements and team expertise. The NestJS implementation offers improved speed and built-in TypeScript support, while the Express.js version provides simplicity and familiarity.
@@ -153,7 +153,7 @@ Both backends provide the same API endpoints and features, allowing you to choos
 
 The project provides **two backend implementations** with identical functionality:
 
-#### Express.js Backend (`/backend`)
+#### Express.js Backend (`/backend-express`)
 - **Pros**: Mature ecosystem, simple setup, widely adopted
 - **Cons**: Less structured, manual TypeScript setup
 - **Best for**: Teams familiar with Express, rapid prototyping
@@ -252,7 +252,7 @@ cd eth-volunteer
 
 ```bash
 # Navigate to backend directory
-cd backend
+cd backend-express
 
 # Install dependencies
 npm install
@@ -342,7 +342,7 @@ npm run build        # Build for production
 ```
 eth-volunteer/
 │
-├── backend/                    # Backend API (Express.js)
+├── backend-express/            # Backend API (Express.js)
 │   ├── src/
 │   │   ├── controllers/        # Request handlers
 │   │   ├── services/           # Business logic
