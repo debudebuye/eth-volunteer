@@ -66,7 +66,7 @@ describe('Auth Middleware', () => {
         select: jest.fn().mockReturnThis(),
       };
 
-      req.user = { id: 'admin123' };
+      req.user = { id: 'admin123', role: 'admin' };
       Admin.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockAdmin),
       });
@@ -74,7 +74,9 @@ describe('Auth Middleware', () => {
       await verifyAdmin(req, res, next);
 
       expect(next).toHaveBeenCalled();
-      expect(req.user).toEqual(mockAdmin);
+      expect(req.user.admin).toEqual(mockAdmin);
+      expect(req.user.id).toBe('admin123');
+      expect(req.user.role).toBe('admin');
     });
 
     it('should reject when no user in request', async () => {
@@ -87,14 +89,14 @@ describe('Auth Middleware', () => {
     });
 
     it('should reject non-admin user', async () => {
-      req.user = { id: 'user123' };
+      req.user = { id: 'user123', role: 'user' };
       Admin.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(null),
       });
 
       await verifyAdmin(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.status).toHaveBeenCalledWith(403); // Changed from 404 because role check happens first
       expect(next).not.toHaveBeenCalled();
     });
   });
@@ -107,7 +109,7 @@ describe('Auth Middleware', () => {
         status: 'active',
       };
 
-      req.user = { id: 'ngo123' };
+      req.user = { id: 'ngo123', role: 'ngo' };
       NGO.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockNGO),
       });
@@ -133,7 +135,7 @@ describe('Auth Middleware', () => {
         status: 'blocked',
       };
 
-      req.user = { id: 'ngo123' };
+      req.user = { id: 'ngo123', role: 'ngo' };
       NGO.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockNGO),
       });
