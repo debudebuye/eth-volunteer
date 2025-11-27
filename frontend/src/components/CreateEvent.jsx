@@ -11,7 +11,7 @@ const CreateEvent = () => {
     data.append("location", formData.location);
     data.append("image", formData.image);
 
-    await fetch("/api/events/create", { method: "POST", body: data });
+    await fetch("/api/v1/events/create", { method: "POST", body: data });
   };
 
   return (

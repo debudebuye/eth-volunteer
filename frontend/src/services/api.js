@@ -3,7 +3,7 @@ import useAuthStore from '../store/authStore';
 
 // Create axios instance with base configuration
 const API = axios.create({
-  baseURL: `${process.env.REACT_APP_BACKEND_BASEURL || 'http://localhost:5000'}/api`,
+  baseURL: `${process.env.REACT_APP_BACKEND_BASEURL || 'http://localhost:5000'}/api/v1`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

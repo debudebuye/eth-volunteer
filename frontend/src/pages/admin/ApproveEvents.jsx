@@ -15,7 +15,7 @@ const ApproveEvents = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/pending`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/pending`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
@@ -33,7 +33,7 @@ const ApproveEvents = () => {
 
   const updateEventStatus = async (id, status) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/${status}/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/${status}/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -48,7 +48,7 @@ const ApproveEvents = () => {
 
       // Send email notification if the event is approved
       if (status === "approve") {
-        const emailResponse = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/send-email/${id}`, {
+        const emailResponse = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/send-email/${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

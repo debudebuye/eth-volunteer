@@ -15,7 +15,7 @@ const EventDetails = () => {
     const fetchEventDetails = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/${eventId}?populate=comments.userId`
+          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/${eventId}?populate=comments.userId`
         );
 
         if (!response.ok) {
@@ -46,7 +46,7 @@ const EventDetails = () => {
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/comment`,
+        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/comment`,
         {
           method: "POST",
           headers: {

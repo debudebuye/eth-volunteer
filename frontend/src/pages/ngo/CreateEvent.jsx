@@ -49,7 +49,7 @@ const CreateEvent = () => {
 
         try {
             const response = await fetch(
-                `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/create`,
+                `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/create`,
                 {
                     method: "POST",
                     body: eventData,

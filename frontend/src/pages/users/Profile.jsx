@@ -25,7 +25,7 @@ const Profile = () => {
         console.log("Fetching profile for email:", email); // Debugging
 
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/profile/${email}`,
+          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/profile/${email}`,
           {
             method: "GET",
             headers: {
@@ -58,7 +58,7 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/update-profile`,
+        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/update-profile`,
         {
           method: "PUT",
           headers: {

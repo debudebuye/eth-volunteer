@@ -19,7 +19,7 @@ const TrackEvents = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/track`,
+          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/track`,
           {
             method: "GET",
             headers: {
@@ -67,7 +67,7 @@ const TrackEvents = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/${eventId}/comments/${commentId}/reply`,
+        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/${eventId}/comments/${commentId}/reply`,
         {
           method: "POST",
           headers: {

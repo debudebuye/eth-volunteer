@@ -23,7 +23,7 @@ const AdminLogin = () => {
     try {
       // Use backticks for template literals
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/admin/login`,
+        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/admin/login`,
         {
           method: "POST",
           headers: {

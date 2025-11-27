@@ -25,7 +25,7 @@ const ManageEvents = () => {
                 console.log("Fetching events..."); // Debugging: Indicate start of fetch
                 console.log("Token:", token); // Debugging: Log the token
     
-                const apiUrl = `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/events`;
+                const apiUrl = `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/events`;
                 console.log("API URL:", apiUrl); // Debugging: Log the API URL
     
                 const response = await fetch(apiUrl, {
@@ -87,7 +87,7 @@ const ManageEvents = () => {
 
         try {
             const response = await fetch(
-                `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/update/${editEventId}`,
+                `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/update/${editEventId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -127,7 +127,7 @@ const ManageEvents = () => {
         if (window.confirm("Are you sure you want to delete this event?")) {
             try {
                 const response = await fetch(
-                    `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events/delete/${eventId}`,
+                    `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/delete/${eventId}`,
                     {
                         method: "DELETE",
                         headers: {

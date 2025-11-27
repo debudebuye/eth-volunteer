@@ -6,7 +6,7 @@ const RejectedEvents = () => {
   const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/events?status=rejected`)
+    fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events?status=rejected`)
       .then((res) => res.json())
       .then((data) => setRejectedEvents(data))
       .catch((error) =>
@@ -17,7 +17,7 @@ const RejectedEvents = () => {
   const unrejectEvent = async (eventId) => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL}/api/events/unreject/${eventId}`,
+        `${process.env.REACT_APP_BACKEND_BASEURL}/api/v1/events/unreject/${eventId}`,
         {
           method: "PUT",
           headers: {
@@ -41,7 +41,7 @@ const RejectedEvents = () => {
   const deleteEvent = async (eventId) => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL}/api/events/delete/${eventId}`,
+        `${process.env.REACT_APP_BACKEND_BASEURL}/api/v1/events/delete/${eventId}`,
         {
           method: "DELETE",
           headers: {
