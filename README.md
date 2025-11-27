@@ -29,6 +29,15 @@ A comprehensive full-stack web platform that connects Ethiopian volunteers with 
 
 **ETH Volunteers** is a modern, production-ready platform designed to bridge the gap between volunteers and NGOs in Ethiopia. The platform streamlines the process of volunteer recruitment, event management, and community engagement through an intuitive interface and robust backend infrastructure.
 
+### 🔄 Dual Backend Architecture
+
+This project features **two backend implementations** with identical functionality:
+
+- **Express.js Backend** (`/backend`) - Traditional Node.js/Express architecture with proven stability
+- **NestJS Backend** (`/backend-nestjs`) - Modern TypeScript framework with enhanced performance and scalability
+
+Both backends provide the same API endpoints and features, allowing you to choose based on your performance requirements and team expertise. The NestJS implementation offers improved speed and built-in TypeScript support, while the Express.js version provides simplicity and familiarity.
+
 ### Key Objectives
 
 - **Connect**: Match volunteers with NGOs based on skills, interests, and location
@@ -82,7 +91,7 @@ A comprehensive full-stack web platform that connects Ethiopian volunteers with 
 
 ## 🛠️ Tech Stack
 
-### Backend
+### Backend (Express.js)
 
 | Technology | Purpose | Version |
 |------------|---------|---------|
@@ -99,6 +108,22 @@ A comprehensive full-stack web platform that connects Ethiopian volunteers with 
 | **Express Rate Limit** | Rate limiting | 7.1+ |
 | **Swagger** | API documentation | 6.2+ |
 | **Jest** | Testing framework | 29.7+ |
+
+### Backend (NestJS) - Alternative Implementation
+
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **NestJS** | TypeScript framework | 11.0+ |
+| **TypeScript** | Type-safe JavaScript | 5.7+ |
+| **MongoDB** | Database | 4.0+ |
+| **Mongoose** | ODM for MongoDB | 8.20+ |
+| **Passport JWT** | Authentication | 4.0+ |
+| **Bcrypt** | Password hashing | 6.0+ |
+| **Class Validator** | DTO validation | 0.14+ |
+| **Helmet** | Security headers | 8.1+ |
+| **Throttler** | Rate limiting | 6.4+ |
+| **Swagger** | API documentation | 11.2+ |
+| **Jest** | Testing framework | 30.0+ |
 
 ### Frontend
 
@@ -123,6 +148,24 @@ A comprehensive full-stack web platform that connects Ethiopian volunteers with 
 ---
 
 ## 🏗️ Architecture
+
+### Backend Options
+
+The project provides **two backend implementations** with identical functionality:
+
+#### Express.js Backend (`/backend`)
+- **Pros**: Mature ecosystem, simple setup, widely adopted
+- **Cons**: Less structured, manual TypeScript setup
+- **Best for**: Teams familiar with Express, rapid prototyping
+
+#### NestJS Backend (`/backend-nestjs`)
+- **Pros**: Built-in TypeScript, dependency injection, better performance, modular architecture
+- **Cons**: Steeper learning curve, more boilerplate
+- **Best for**: Large-scale applications, teams preferring TypeScript, performance-critical scenarios
+
+> **Note**: Both backends connect to the same MongoDB database and provide identical API endpoints. Choose based on your team's expertise and performance requirements.
+
+---
 
 The platform follows a **layered architecture** pattern with clear separation of concerns:
 
@@ -203,6 +246,10 @@ cd eth-volunteer
 
 #### 2. Backend Setup
 
+**Choose one of the two backend implementations:**
+
+##### Option A: Express.js Backend (Recommended for beginners)
+
 ```bash
 # Navigate to backend directory
 cd backend
@@ -226,7 +273,29 @@ cp .env.example .env
 npm run dev
 ```
 
-The backend server will start on `http://localhost:5000`
+The Express.js backend server will start on `http://localhost:5000`
+
+##### Option B: NestJS Backend (Recommended for performance)
+
+```bash
+# Navigate to NestJS backend directory
+cd backend-nestjs
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+
+# Edit .env with your configuration (same as Express backend)
+
+# Start development server
+npm run start:dev
+```
+
+The NestJS backend server will start on `http://localhost:5000`
+
+> **Important**: Only run ONE backend at a time. Both use the same port (5000) and database.
 
 #### 3. Frontend Setup
 
@@ -273,7 +342,7 @@ npm run build        # Build for production
 ```
 eth-volunteer/
 │
-├── backend/                    # Backend API
+├── backend/                    # Backend API (Express.js)
 │   ├── src/
 │   │   ├── controllers/        # Request handlers
 │   │   ├── services/           # Business logic
@@ -290,6 +359,16 @@ eth-volunteer/
 │   ├── tests/                  # Test files
 │   ├── docs/                   # Documentation
 │   ├── server.js               # Entry point
+│   └── package.json
+│
+├── backend-nestjs/             # Backend API (NestJS - Alternative)
+│   ├── src/
+│   │   ├── modules/            # Feature modules
+│   │   ├── common/             # Shared utilities
+│   │   ├── config/             # Configuration
+│   │   └── main.ts             # Entry point
+│   ├── test/                   # E2E tests
+│   ├── dist/                   # Compiled output
 │   └── package.json
 │
 ├── frontend/                   # Frontend React App
