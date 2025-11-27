@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../config/api.config";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ const AdminLogin = () => {
     try {
       // Use backticks for template literals
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/admin/login`,
+        `${API_URL}/admin/login`,
         {
           method: "POST",
           headers: {

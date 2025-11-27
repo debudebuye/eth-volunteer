@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import TabNavigation from "./TabNavigation";
 import EventCard from "./EventCard";
+import { API_URL } from "../../config/api.config";
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const VolunteerDashboard = () => {
     try {
       const location = user?.location || "defaultLocation";
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/by-location?location=${location}`
+        `${API_URL}/events/by-location?location=${location}`
       );
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -60,7 +61,7 @@ const VolunteerDashboard = () => {
         throw new Error("User ID is missing.");
       }
 
-      const url = `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/joined-events?userId=${userId}`;
+      const url = `${API_URL}/joined-events?userId=${userId}`;
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -100,7 +101,7 @@ const VolunteerDashboard = () => {
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/comment`,
+        `${API_URL}/events/comment`,
         {
           method: "POST",
           headers: {
@@ -140,7 +141,7 @@ const VolunteerDashboard = () => {
       const endpoint = isJoined ? "unjoin-event" : "join-event";
   
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/${endpoint}`,
+        `${API_URL}/${endpoint}`,
         {
           method: "POST",
           headers: {
@@ -203,7 +204,7 @@ const VolunteerDashboard = () => {
 
       const endpoint = hasLiked ? "unlike" : "likes";
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/${endpoint}`,
+        `${API_URL}/events/${endpoint}`,
         {
           method: "POST",
           headers: {

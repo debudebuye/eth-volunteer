@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../../config/api.config";
 
 const CreateEvent = () => {
     const [formData, setFormData] = useState({
@@ -49,7 +50,7 @@ const CreateEvent = () => {
 
         try {
             const response = await fetch(
-                `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/create`,
+                `${API_URL}/events/create`,
                 {
                     method: "POST",
                     body: eventData,

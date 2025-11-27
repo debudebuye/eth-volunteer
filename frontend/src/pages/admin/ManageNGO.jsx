@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaTrash, FaBan, FaCheckCircle } from "react-icons/fa"; // Adding icons for actions
+import { API_URL } from "../../config/api.config";
 
 const ManageNGO = () => {
   const [ngoUsers, setNGOUsers] = useState([]);
@@ -7,7 +8,7 @@ const ManageNGO = () => {
   useEffect(() => {
     // Fetch NGO users from the API
     fetch(
-      `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/ngo/ngo-users`
+      `${API_URL}/ngo/ngo-users`
     )
       .then((res) => res.json())
       .then((data) => setNGOUsers(data))
@@ -19,7 +20,7 @@ const ManageNGO = () => {
     if (!window.confirm("Are you sure you want to delete this NGO?")) return;
 
     fetch(
-      `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/ngo/ngo-users/${id}`,
+      `${API_URL}/ngo/ngo-users/${id}`,
       { method: "DELETE" }
     )
       .then((res) => res.json())
@@ -30,7 +31,7 @@ const ManageNGO = () => {
   // Function to block/unblock NGO user
   const handleBlock = (id, status) => {
     fetch(
-      `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/ngo/ngo-users/${id}`,
+      `${API_URL}/ngo/ngo-users/${id}`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

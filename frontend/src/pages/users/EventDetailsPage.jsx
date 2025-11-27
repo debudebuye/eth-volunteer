@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { API_URL, API_BASE_URL } from "../../config/api.config";
 
 const EventDetails = () => {
   const { eventId } = useParams(); // Get the event ID from the URL
@@ -15,7 +16,7 @@ const EventDetails = () => {
     const fetchEventDetails = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/${eventId}?populate=comments.userId`
+          `${API_URL}/events/${eventId}?populate=comments.userId`
         );
 
         if (!response.ok) {
@@ -46,7 +47,7 @@ const EventDetails = () => {
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/comment`,
+        `${API_URL}/events/comment`,
         {
           method: "POST",
           headers: {
@@ -91,8 +92,7 @@ const EventDetails = () => {
       <div className="bg-white p-6 shadow-lg rounded-lg w-full max-w-2xl">
         <h1 className="text-2xl font-bold mb-4">{event.name}</h1>
         <img
-        //   src={`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}${event.image}`}
-        src={`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}${event.image.replace("..", "")}`}
+        src={`${API_BASE_URL}${event.image.replace("..", "")}`}
 
           alt={event.name}
           className="w-full h-64 object-cover rounded-lg mb-4"

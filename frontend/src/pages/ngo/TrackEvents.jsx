@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "../../config/api.config";
 
 const TrackEvents = () => {
   const [events, setEvents] = useState([]);
@@ -19,7 +20,7 @@ const TrackEvents = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/track`,
+          `${API_URL}/events/track`,
           {
             method: "GET",
             headers: {
@@ -67,7 +68,7 @@ const TrackEvents = () => {
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/${eventId}/comments/${commentId}/reply`,
+        `${API_URL}/events/${eventId}/comments/${commentId}/reply`,
         {
           method: "POST",
           headers: {

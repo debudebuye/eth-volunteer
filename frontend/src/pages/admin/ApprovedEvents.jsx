@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../../config/api.config";
 
 const ApprovedEvents = () => {
   const [events, setEvents] = useState([]);
@@ -11,7 +12,7 @@ const ApprovedEvents = () => {
 
   const fetchApprovedEvents = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/approved`);
+      const response = await fetch(`${API_URL}/events/approved`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch approved events");
@@ -26,7 +27,7 @@ const ApprovedEvents = () => {
 
   const disapproveEvent = async (eventId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/v1/events/disapprove/${eventId}`, {
+      const response = await fetch(`${API_URL}/events/disapprove/${eventId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +48,7 @@ const ApprovedEvents = () => {
 
   const deleteEvent = async (eventId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/v1/events/delete/${eventId}`, {
+      const response = await fetch(`${API_URL}/events/delete/${eventId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

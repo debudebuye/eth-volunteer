@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../config/api.config";
 
 const AdminRegister = () => {
   const [name, setName] = useState("");
@@ -23,7 +24,7 @@ const AdminRegister = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/admin/register`, {
+      const response = await fetch(`${API_URL}/admin/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../config/api.config";
 
 const LoginPage = () => {
     const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ const LoginPage = () => {
         }
     
         try {
-            const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/auth/login-ngo`, {
+            const response = await fetch(`${API_URL}/auth/login-ngo`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),

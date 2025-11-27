@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { API_URL } from "../../config/api.config";
 
 const RegisterVolunteer = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const RegisterVolunteer = () => {
     e.preventDefault();
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/auth/register/volunteer`,
+        `${API_URL}/auth/register/volunteer`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

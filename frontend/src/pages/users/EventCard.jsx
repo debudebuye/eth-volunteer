@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { FaThumbsUp, FaComment, FaUserPlus, FaUserMinus, FaUsers } from "react-icons/fa";
+import { API_BASE_URL } from "../../config/api.config";
 
 const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin }) => {
   const navigate = useNavigate();
@@ -10,13 +11,13 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
   };
 
   // Log the image URL for debugging
-  console.log("Image URL:", `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}${event.image.replace("..", "")}`);
+  console.log("Image URL:", `${API_BASE_URL}${event.image.replace("..", "")}`);
 
   return (
     <div className="bg-white p-6 shadow-lg rounded-lg">
       {/* Clickable Event Image */}
       <img
-        src={`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}${event.image.replace("..", "")}`}
+        src={`${API_BASE_URL}${event.image.replace("..", "")}`}
         alt={event.name}
         className="w-full h-48 object-cover rounded-lg mb-4 cursor-pointer"
         onClick={handleEventClick} // Navigate to event details on click

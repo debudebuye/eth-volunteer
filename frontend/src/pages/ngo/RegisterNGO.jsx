@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../config/api.config";
 
 const RegisterNGO = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ const RegisterNGO = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/auth/register/ngo`, {
+    const response = await fetch(`${API_URL}/auth/register/ngo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),

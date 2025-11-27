@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../config/api.config";
 
 const CreateEvent = () => {
   const [formData, setFormData] = useState({ name: "", date: "", location: "", image: null });
@@ -11,7 +12,7 @@ const CreateEvent = () => {
     data.append("location", formData.location);
     data.append("image", formData.image);
 
-    await fetch("/api/v1/events/create", { method: "POST", body: data });
+    await fetch(`${API_URL}/events/create`, { method: "POST", body: data });
   };
 
   return (

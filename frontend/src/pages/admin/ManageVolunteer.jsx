@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "../../config/api.config";
 
 const ManageVolunteer = () => {
   const [users, setUsers] = useState([]);
 
   // Fetch users from the backend
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/users`) // Replace with your actual API endpoint
+    fetch(`${API_URL}/users`)
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error("Error fetching users:", error));
@@ -13,7 +14,7 @@ const ManageVolunteer = () => {
 
   // Handle delete action
   const handleDelete = (id) => {
-    fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/v1/users/${id}`, {
+    fetch(`${API_URL}/users/${id}`, {
       method: "DELETE",
     })
       .then((res) => res.json())
@@ -27,7 +28,7 @@ const ManageVolunteer = () => {
   // Handle block action
   const handleBlock = async (id, isCurrentlyBlocked) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASEURL}/api/v1/users/${id}/block`, {
+      const response = await fetch(`${API_URL}/users/${id}/block`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isBlocked: !isCurrentlyBlocked }), // Toggle block/unblock

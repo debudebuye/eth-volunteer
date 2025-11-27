@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "../../config/api.config";
 
 const ManageEvents = () => {
     const [events, setEvents] = useState([]); // Initialize as an empty array
@@ -25,7 +26,7 @@ const ManageEvents = () => {
                 console.log("Fetching events..."); // Debugging: Indicate start of fetch
                 console.log("Token:", token); // Debugging: Log the token
     
-                const apiUrl = `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/events`;
+                const apiUrl = `${API_URL}/events/events`;
                 console.log("API URL:", apiUrl); // Debugging: Log the API URL
     
                 const response = await fetch(apiUrl, {
@@ -87,7 +88,7 @@ const ManageEvents = () => {
 
         try {
             const response = await fetch(
-                `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/update/${editEventId}`,
+                `${API_URL}/events/update/${editEventId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -127,7 +128,7 @@ const ManageEvents = () => {
         if (window.confirm("Are you sure you want to delete this event?")) {
             try {
                 const response = await fetch(
-                    `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/events/delete/${eventId}`,
+                    `${API_URL}/events/delete/${eventId}`,
                     {
                         method: "DELETE",
                         headers: {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "../../config/api.config";
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -25,7 +26,7 @@ const Profile = () => {
         console.log("Fetching profile for email:", email); // Debugging
 
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/profile/${email}`,
+          `${API_URL}/profile/${email}`,
           {
             method: "GET",
             headers: {
@@ -58,7 +59,7 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_BASEURL || "http://localhost:5000"}/api/v1/update-profile`,
+        `${API_URL}/update-profile`,
         {
           method: "PUT",
           headers: {
