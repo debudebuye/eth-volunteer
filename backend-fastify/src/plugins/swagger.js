@@ -2,7 +2,7 @@ import fp from 'fastify-plugin';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 
-async function swaggerPlugin(fastify) {
+async function swaggerPlugin(fastify, opts) {
   await fastify.register(swagger, {
     openapi: {
       info: {
@@ -45,4 +45,6 @@ async function swaggerPlugin(fastify) {
   });
 }
 
-export default fp(swaggerPlugin);
+export default fp(swaggerPlugin, {
+  name: 'swagger-plugin',
+});

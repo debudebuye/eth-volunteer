@@ -2,7 +2,7 @@ import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
 import { config } from '../config/env.js';
 
-async function authPlugin(fastify) {
+async function authPlugin(fastify, opts) {
   // Register JWT
   await fastify.register(jwt, {
     secret: config.jwtSecret,
@@ -39,4 +39,6 @@ async function authPlugin(fastify) {
   });
 }
 
-export default fp(authPlugin);
+export default fp(authPlugin, {
+  name: 'auth-plugin',
+});
