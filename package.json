@@ -1,0 +1,17 @@
+{
+  "name": "eth-volunteer-benchmarks",
+  "version": "1.0.0",
+  "description": "Performance benchmarks for Ethiopian Volunteer Platform backends",
+  "type": "module",
+  "scripts": {
+    "benchmark": "node benchmark.js",
+    "benchmark:quick": "node benchmark.js --quick",
+    "install-tools": "npm install -g autocannon artillery"
+  },
+  "keywords": ["benchmark", "performance", "load-testing"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autocannon": "^7.15.0"
+  }
+}
