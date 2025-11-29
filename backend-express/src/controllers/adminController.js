@@ -23,7 +23,23 @@ class AdminController {
   login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const result = await authService.loginAdmin(email, password);
-    successResponse(res, result, 'Login successful');
+    
+    // Set tokens in HttpOnly cookies (shorter expiration for admin)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutes for admin (shorter than regular users)
+    };
+    
+    res.cookie('token', result.token, cookieOptions);
+    res.cookie('refreshToken', result.refreshToken, {
+      ...cookieOptions,
+      maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day for admin refresh token
+    });
+    
+    // Send response WITHOUT tokens (use 'user' key for consistency)
+    successResponse(res, { user: result.admin }, 'Login successful');
   });
 }
 

@@ -9,10 +9,15 @@ const RejectedEvents = () => {
   useEffect(() => {
     fetch(`${API_URL}/events?status=rejected`)
       .then((res) => res.json())
-      .then((data) => setRejectedEvents(data))
-      .catch((error) =>
-        console.error("Error fetching rejected events:", error)
-      );
+      .then((response) => {
+        // Handle response structure: { success, data: [...] } or just [...]
+        const data = response.data || response;
+        setRejectedEvents(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => {
+        console.error("Error fetching rejected events:", error);
+        setRejectedEvents([]); // Set empty array on error
+      });
   }, []);
 
   const unrejectEvent = async (eventId) => {

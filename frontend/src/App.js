@@ -1,17 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import Admin from "./pages/admin/AdminLogin";
 import NGODashboard from "./pages/ngo/NGODashboard";
 import VolunteerDashboard from "./pages/users/VolunteerDashboard";
 import EventDetailsPage from "./pages/users/EventDetailsPage";
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/ngo/LoginPage";
 import NgoBlocked from "./pages/ngo/NgoBlocked";
 import ManageEvents from "./pages/ngo/ManageEvents";
 import TrackEvents from "./pages/ngo/TrackEvents";
 import EditEvent from "./pages/ngo/EditEvent"
-import Login from "./pages/users/Login";
+import Login from "./pages/users/Login"; // Unified login for all user types
 import UserBlocked from "./pages/users/UserBlocked";
 import PrivateRoute from "./components/Protected/PrivateRoute";
 import NgoRoute from "./components/Protected/ngoRoute";
@@ -40,16 +38,14 @@ const App = () => {
         
         {/* Home Routes */}
         <Route path="/ngo" element={<NgoHome />} />
-        <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<Admin />} />
 
-
-        
-
-        {/* Login Routes */}
-        <Route path="/login-ngo" element={<LoginPage />} />
+        {/* Unified Login Route - Works for all user types (Volunteer, NGO, Admin) */}
         <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<Admin />} />
+        
+        {/* Redirect old login routes to unified login */}
+        <Route path="/login-ngo" element={<Navigate to="/login" replace />} />
+        <Route path="/admin-login" element={<Navigate to="/login" replace />} />
+        <Route path="/admin" element={<Navigate to="/login" replace />} />
 
         {/* Register Routes */}
         <Route path="/register-admin" element={<AdminRegister />} />

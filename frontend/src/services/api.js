@@ -5,19 +5,19 @@ import { API_URL } from '../config/api.config';
 // Create axios instance with base configuration
 const API = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 30000, // Increased to 30 seconds
+  withCredentials: true, // Send cookies with requests
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor - Add auth token to all requests
+// Request interceptor - Token is now in HttpOnly cookie, sent automatically
+// No need to add Authorization header manually
 API.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Cookies are sent automatically with withCredentials: true
+    // No need to manually add token
     return config;
   },
   (error) => {
@@ -27,11 +27,22 @@ API.interceptors.request.use(
 
 // Response interceptor - Handle errors globally
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response received:', response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', error.config?.url, error.message);
+    
     if (error.response) {
+      console.error('Error response:', error.response.status, error.response.data);
+      
       // Handle 401 Unauthorized - logout user
-      if (error.response.status === 401) {
+      // BUT: Don't redirect during login attempts (let the login component handle it)
+      const isLoginAttempt = error.config?.url?.includes('/login') || 
+                             error.config?.url?.includes('/register');
+      
+      if (error.response.status === 401 && !isLoginAttempt) {
         useAuthStore.getState().logout();
         window.location.href = '/login';
       }
@@ -51,7 +62,9 @@ API.interceptors.response.use(
         console.error('Server error:', error.response.data);
       }
     } else if (error.request) {
-      console.error('Network error:', error.message);
+      console.error('Network error - no response received:', error.message);
+    } else {
+      console.error('Request setup error:', error.message);
     }
 
     return Promise.reject(error);
@@ -62,12 +75,13 @@ API.interceptors.response.use(
 // AUTH API
 // ============================================
 export const authAPI = {
-  register: (data) => API.post('/auth/register', data),
+  register: (data) => API.post('/auth/register/volunteer', data),
   login: (data) => API.post('/auth/login', data),
-  registerNGO: (data) => API.post('/auth/register-ngo', data),
-  registerAdmin: (data) => API.post('/auth/register-admin', data),
+  registerNGO: (data) => API.post('/auth/register/ngo', data),
+  registerAdmin: (data) => API.post('/admin/register', data),
   loginNGO: (data) => API.post('/auth/login-ngo', data),
-  loginAdmin: (data) => API.post('/auth/login-admin', data),
+  loginAdmin: (data) => API.post('/admin/login', data),
+  logout: () => API.post('/auth/logout'),
 };
 
 // ============================================

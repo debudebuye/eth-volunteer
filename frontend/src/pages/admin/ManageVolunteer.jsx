@@ -8,8 +8,15 @@ const ManageVolunteer = () => {
   useEffect(() => {
     fetch(`${API_URL}/users`)
       .then((res) => res.json())
-      .then((data) => setUsers(data))
-      .catch((error) => console.error("Error fetching users:", error));
+      .then((response) => {
+        // Handle response structure: { success, data: [...] } or just [...]
+        const data = response.data || response;
+        setUsers(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => {
+        console.error("Error fetching users:", error);
+        setUsers([]); // Set empty array on error
+      });
   }, []);
 
   // Handle delete action

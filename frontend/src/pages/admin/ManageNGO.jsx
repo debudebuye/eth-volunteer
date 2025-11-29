@@ -11,8 +11,15 @@ const ManageNGO = () => {
       `${API_URL}/ngo/ngo-users`
     )
       .then((res) => res.json())
-      .then((data) => setNGOUsers(data))
-      .catch((error) => console.error("Error fetching NGO users:", error));
+      .then((response) => {
+        // Handle response structure: { success, data: [...] } or just [...]
+        const data = response.data || response;
+        setNGOUsers(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => {
+        console.error("Error fetching NGO users:", error);
+        setNGOUsers([]); // Set empty array on error
+      });
   }, []);
 
   // Function to delete NGO user

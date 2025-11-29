@@ -15,8 +15,8 @@ import autocannon from 'autocannon';
 import { writeFileSync } from 'fs';
 
 const backends = [
-  { name: 'Express', port: 5005, color: '\x1b[36m' },
-  { name: 'NestJS', port: 5000, color: '\x1b[35m' },
+  { name: 'Express', port: 5001, color: '\x1b[36m' },
+  { name: 'NestJS', port: 5003, color: '\x1b[35m' },
   { name: 'Fastify', port: 5002, color: '\x1b[33m' },
 ];
 
@@ -240,8 +240,8 @@ try {
 // Run benchmarks
 console.log('⏳ Starting benchmarks in 3 seconds...');
 console.log('   Make sure all three backends are running!');
-console.log('   - Express on port 5005');
-console.log('   - NestJS on port 5000');
+console.log('   - Express on port 5001');
+console.log('   - NestJS on port 5003');
 console.log('   - Fastify on port 5002\n');
 
 await new Promise(resolve => setTimeout(resolve, 3000));

@@ -18,10 +18,13 @@ const ApprovedEvents = () => {
         throw new Error("Failed to fetch approved events");
       }
 
-      const data = await response.json();
-      setEvents(data);
+      const responseData = await response.json();
+      // Handle response structure: { success, data: [...] } or just [...]
+      const data = responseData.data || responseData;
+      setEvents(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching approved events:", error);
+      setEvents([]); // Set empty array on error
     }
   };
 

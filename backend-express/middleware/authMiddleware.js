@@ -12,22 +12,28 @@ if (!secretKey) {
 /**
  * Verify Token Middleware
  * Validates JWT token and attaches decoded user info to request
+ * Supports both HttpOnly cookies and Authorization header
  */
 const verifyToken = async (req, res, next) => {
-  const authHeader = req.header("Authorization");
+  let token;
 
-  if (!authHeader) {
+  // Try to get token from cookie first (more secure)
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  } 
+  // Fallback to Authorization header (for mobile apps, API clients)
+  else {
+    const authHeader = req.header("Authorization");
+    if (authHeader) {
+      token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
+    }
+  }
+
+  if (!token) {
     return res.status(401).json({ message: "Access Denied: No token provided" });
   }
 
   try {
-    // Extract token from "Bearer <token>" format
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
-    
-    if (!token) {
-      return res.status(401).json({ message: "Access Denied: Invalid token format" });
-    }
-
     const decoded = jwt.verify(token, secretKey);
     req.user = decoded; // Attach decoded payload to req.user
     next();

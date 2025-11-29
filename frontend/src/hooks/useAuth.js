@@ -23,12 +23,32 @@ const useAuth = () => {
           response = await authAPI.login(credentials);
       }
 
-      const { user, token } = response.data;
-      setAuth(user, token);
+      // Backend returns: { success, message, data: { user } }
+      // Token is now in HttpOnly cookie, not in response!
+      console.log('Login response full:', response);
+      console.log('Login response.data:', response.data);
+      console.log('Login response.data.data:', response.data.data);
       
-      return { success: true, user, token };
+      // Extract user from response
+      const responseData = response.data.data || response.data;
+      console.log('responseData:', responseData);
+      
+      const user = responseData.user;
+      console.log('Extracted user:', user);
+      
+      if (!user) {
+        console.error('No user in response. Full response:', response.data);
+        console.error('responseData:', responseData);
+        throw new Error('Invalid response structure');
+      }
+      
+      // Store user data only (no token needed - it's in cookie)
+      setAuth(user, null);
+      
+      return { success: true, user };
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
+      console.error('Login error:', error);
+      const message = error.response?.data?.message || error.message || 'Login failed';
       return { success: false, error: message };
     }
   }, [setAuth]);
@@ -49,20 +69,35 @@ const useAuth = () => {
           response = await authAPI.register(userData);
       }
 
-      const { user, token } = response.data;
+      // Backend returns: { success, message, data: { user, token } }
+      // Axios wraps it in response.data
+      const { user, token } = response.data.data || response.data;
+      
+      if (!user || !token) {
+        throw new Error('Invalid response structure');
+      }
+      
       setAuth(user, token);
       
       return { success: true, user, token };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.response?.data?.message || error.message || 'Registration failed';
       return { success: false, error: message };
     }
   }, [setAuth]);
 
   // Logout function
-  const logout = useCallback(() => {
-    logoutStore();
-    navigate('/login');
+  const logout = useCallback(async () => {
+    try {
+      // Call backend to clear HttpOnly cookies
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local state regardless
+      logoutStore();
+      navigate('/login');
+    }
   }, [logoutStore, navigate]);
 
   // Check authentication

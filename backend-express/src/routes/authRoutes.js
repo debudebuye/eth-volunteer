@@ -266,4 +266,19 @@ router.post(
   authController.refreshToken
 );
 
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user (clears HttpOnly cookies)
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
+router.post(
+  '/logout',
+  authController.logout
+);
+
 module.exports = router;
