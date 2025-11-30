@@ -14,6 +14,12 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
   const imageUrl = event.image 
     ? `${API_BASE_URL}${event.image.startsWith('/') ? event.image : '/' + event.image}`
     : 'https://via.placeholder.com/400x200?text=No+Image';
+  
+  // Debug: Log the image URL
+  console.log('Event:', event.name);
+  console.log('Image path from API:', event.image);
+  console.log('Constructed URL:', imageUrl);
+  console.log('API_BASE_URL:', API_BASE_URL);
 
   // Format date
   const eventDate = new Date(event.date).toLocaleDateString('en-US', {
