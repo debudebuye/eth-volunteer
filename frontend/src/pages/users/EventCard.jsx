@@ -10,67 +10,128 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
     navigate(`/event/${event._id}`);
   };
 
-  // Log the image URL for debugging
-  console.log("Image URL:", `${API_BASE_URL}${event.image.replace("..", "")}`);
+  // Construct proper image URL
+  const imageUrl = event.image 
+    ? `${API_BASE_URL}${event.image.startsWith('/') ? event.image : '/' + event.image}`
+    : 'https://via.placeholder.com/400x200?text=No+Image';
+
+  // Format date
+  const eventDate = new Date(event.date).toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+
+  const isLiked = event.likedBy?.includes(user?._id);
+  const isJoined = joinedEvents.includes(event._id);
 
   return (
-    <div className="bg-white p-6 shadow-lg rounded-lg">
-      {/* Clickable Event Image */}
-      <img
-        src={`${API_BASE_URL}${event.image.replace("..", "")}`}
-        alt={event.name}
-        className="w-full h-48 object-cover rounded-lg mb-4 cursor-pointer"
-        onClick={handleEventClick} // Navigate to event details on click
-      />
-
-      {/* Clickable Event Title */}
-      <h3
-        className="text-lg font-bold cursor-pointer hover:text-blue-500"
-        onClick={handleEventClick} // Navigate to event details on click
-      >
-        {event.name}
-      </h3>
-
-      <p className="text-gray-600 mt-2">{event.organization}</p>
-
-      {/* Display the number of participants */}
-      <div className="flex items-center text-gray-600 mt-2">
-        <FaUsers className="mr-2" />
-        <span>{event.participants?.length || 0} Participants</span>
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+      {/* Event Image */}
+      <div className="relative h-56 overflow-hidden group cursor-pointer" onClick={handleEventClick}>
+        <img
+          src={imageUrl}
+          alt={event.name}
+          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/400x200?text=Event+Image';
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
-      {/* Like, Comment, Join Icons */}
-      <div className="flex justify-between mt-4">
-        {/* Like Button */}
-        <button
-          onClick={() => handleLike(event._id)}
-          className="flex items-center"
+      {/* Event Content */}
+      <div className="p-6">
+        {/* Event Title */}
+        <h3
+          className="text-2xl font-bold text-gray-900 mb-2 cursor-pointer hover:text-green-600 transition-colors line-clamp-2"
+          onClick={handleEventClick}
         >
-          <FaThumbsUp
-            className={`mr-2 ${event.likedBy?.includes(user?._id) ? "text-red-600" : "text-red-300"}`} // Red for like, light red for unlike
-          />
-          <span>({likes[event._id] || 0})</span>
-        </button>
+          {event.name}
+        </h3>
 
-        {/* Comment Button */}
-        <button
-          onClick={handleEventClick} // Navigate to event details on click
-          className="flex items-center text-green-500 hover:text-green-700"
-        >
-          <FaComment className="mr-2" /> ({event.comments?.length || 0})
-        </button>
+        {/* Event Description */}
+        {event.description && (
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+            {event.description}
+          </p>
+        )}
 
-        {/* Join/Unjoin Button */}
-        <button
-          onClick={() => handleJoin(event._id)}
-          className="flex items-center"
-        >
-          {joinedEvents.includes(event._id) ? (
-            <FaUserMinus className="text-red-600 mr-2" /> // Red with minus icon for unjoin
-          ) : (
-            <FaUserPlus className="text-green-600 mr-2" /> // Green with plus icon for join
+        {/* Event Meta Info */}
+        <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
+          {/* Date */}
+          <div className="flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{eventDate}</span>
+          </div>
+
+          {/* Location */}
+          {event.location && (
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="capitalize">{event.location}</span>
+            </div>
           )}
-        </button>
+        </div>
+
+        {/* Participants Count */}
+        <div className="flex items-center gap-2 mb-4 text-gray-700">
+          <FaUsers className="text-green-600" />
+          <span className="font-medium">{event.participants?.length || 0} Participants</span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+          {/* Like Button */}
+          <button
+            onClick={() => handleLike(event._id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+              isLiked
+                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FaThumbsUp className={isLiked ? 'text-red-600' : 'text-gray-400'} />
+            <span>{event.likes || 0}</span>
+          </button>
+
+          {/* Comment Button */}
+          <button
+            onClick={handleEventClick}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all duration-200"
+          >
+            <FaComment className="text-gray-400" />
+            <span>{event.comments?.length || 0}</span>
+          </button>
+
+          {/* Join/Unjoin Button */}
+          <button
+            onClick={() => handleJoin(event._id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ml-auto ${
+              isJoined
+                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                : 'bg-green-50 text-green-600 hover:bg-green-100'
+            }`}
+          >
+            {isJoined ? (
+              <>
+                <FaUserMinus />
+                <span>Leave</span>
+              </>
+            ) : (
+              <>
+                <FaUserPlus />
+                <span>Join</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
