@@ -74,7 +74,13 @@ const CreateEvent = () => {
                 });
             } else {
                 console.error("Event creation failed:", data);
-                alert(data.message || "Event creation failed!");
+                // Show detailed validation errors
+                if (data.errors && Array.isArray(data.errors)) {
+                    const errorMessages = data.errors.map(err => err.msg || err.message).join('\n');
+                    alert(`Validation failed:\n${errorMessages}`);
+                } else {
+                    alert(data.message || "Event creation failed!");
+                }
             }
         } catch (error) {
             console.error("Error creating event:", error);
@@ -108,6 +114,7 @@ const CreateEvent = () => {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
+                    min={new Date().toISOString().split('T')[0]} // Set minimum date to today
                     required
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 />
