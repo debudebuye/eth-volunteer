@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { API_URL } from "../../config/api.config";
+import useAuthStore from "../../store/authStore";
 
 const CreateEvent = () => {
+    const { user, isAuthenticated } = useAuthStore();
+    
     const [formData, setFormData] = useState({
         name: "",
         description: "",
         date: "",
         location: "",
-        creatorEmail: "", // Add creatorEmail field
-        creatorName: "",  // Add creatorName field
+        creatorEmail: user?.email || "", // Pre-fill from user
+        creatorName: user?.organization || user?.name || "",  // Pre-fill from user
         image: null,
     });
 
@@ -41,10 +44,9 @@ const CreateEvent = () => {
             console.log(key, value);
         }
 
-        // Retrieve token from localStorage
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("No token found. Please log in.");
+        // Check if user is authenticated
+        if (!isAuthenticated || !user) {
+            alert("Please log in to create an event.");
             return;
         }
 
@@ -54,9 +56,7 @@ const CreateEvent = () => {
                 {
                     method: "POST",
                     body: eventData,
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    credentials: 'include', // Send cookies with request
                 }
             );
 
@@ -68,11 +68,12 @@ const CreateEvent = () => {
                     description: "",
                     date: "",
                     location: "",
-                    creatorEmail: "",
-                    creatorName: "",
+                    creatorEmail: user?.email || "",
+                    creatorName: user?.organization || user?.name || "",
                     image: null,
                 });
             } else {
+                console.error("Event creation failed:", data);
                 alert(data.message || "Event creation failed!");
             }
         } catch (error) {
