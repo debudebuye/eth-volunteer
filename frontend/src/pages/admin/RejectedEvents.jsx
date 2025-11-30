@@ -7,7 +7,9 @@ const RejectedEvents = () => {
   const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/events?status=rejected`)
+    fetch(`${API_URL}/events?status=rejected`, {
+      credentials: 'include', // Send cookies for authentication
+    })
       .then((res) => res.json())
       .then((response) => {
         // Handle response structure: { success, data: [...] } or just [...]

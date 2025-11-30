@@ -6,7 +6,9 @@ const ManageVolunteer = () => {
 
   // Fetch users from the backend
   useEffect(() => {
-    fetch(`${API_URL}/users`)
+    fetch(`${API_URL}/users/users`, {
+      credentials: 'include', // Send cookies for authentication
+    })
       .then((res) => res.json())
       .then((response) => {
         // Handle response structure: { success, data: [...] } or just [...]

@@ -12,7 +12,9 @@ const ApprovedEvents = () => {
 
   const fetchApprovedEvents = async () => {
     try {
-      const response = await fetch(`${API_URL}/events/approved`);
+      const response = await fetch(`${API_URL}/events/approved`, {
+        credentials: 'include', // Send cookies for authentication
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch approved events");

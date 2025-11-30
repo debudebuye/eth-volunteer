@@ -8,7 +8,10 @@ const ManageNGO = () => {
   useEffect(() => {
     // Fetch NGO users from the API
     fetch(
-      `${API_URL}/ngo/ngo-users`
+      `${API_URL}/ngo/ngo-users`,
+      {
+        credentials: 'include', // Send cookies for authentication
+      }
     )
       .then((res) => res.json())
       .then((response) => {

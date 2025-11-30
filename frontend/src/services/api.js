@@ -122,19 +122,19 @@ export const userAPI = {
   unjoinEvent: (userId, eventId) => API.post('/users/unjoin-event', { userId, eventId }),
   blockUser: (userId) => API.put(`/users/block/${userId}`),
   unblockUser: (userId) => API.put(`/users/unblock/${userId}`),
-  getAllVolunteers: () => API.get('/users/volunteers'),
+  getAllVolunteers: () => API.get('/users/users'), // Fixed: correct endpoint
 };
 
 // ============================================
 // NGO API
 // ============================================
 export const ngoAPI = {
-  getAll: () => API.get('/ngos'),
-  getById: (id) => API.get(`/ngos/${id}`),
-  update: (id, data) => API.put(`/ngos/${id}`, data),
-  block: (id) => API.put(`/ngos/block/${id}`),
-  unblock: (id) => API.put(`/ngos/unblock/${id}`),
-  getEvents: (ngoId) => API.get(`/ngos/${ngoId}/events`),
+  getAll: () => API.get('/ngo/ngo-users'), // Fixed: correct endpoint
+  getById: (id) => API.get(`/ngo/${id}`),
+  update: (id, data) => API.put(`/ngo/${id}`, data),
+  block: (id) => API.put(`/ngo/block/${id}`),
+  unblock: (id) => API.put(`/ngo/unblock/${id}`),
+  getEvents: (ngoId) => API.get(`/ngo/${ngoId}/events`),
 };
 
 // ============================================

@@ -17,7 +17,7 @@ const ApproveEvents = () => {
     setError("");
     try {
       const response = await fetch(`${API_URL}/events/pending`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        credentials: 'include', // Send cookies for authentication
       });
 
       if (!response.ok) throw new Error("Failed to fetch pending events");
