@@ -14,12 +14,6 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
   const imageUrl = event.image 
     ? `${API_BASE_URL}${event.image.startsWith('/') ? event.image : '/' + event.image}`
     : 'https://via.placeholder.com/400x200?text=No+Image';
-  
-  // Debug: Log the image URL
-  console.log('Event:', event.name);
-  console.log('Image path from API:', event.image);
-  console.log('Constructed URL:', imageUrl);
-  console.log('API_BASE_URL:', API_BASE_URL);
 
   // Format date
   const eventDate = new Date(event.date).toLocaleDateString('en-US', {
@@ -39,10 +33,14 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
         <img
           src={imageUrl}
           alt={event.name}
+          crossOrigin="anonymous"
+          loading="lazy"
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
           onError={(e) => {
+            console.error('Image failed to load:', imageUrl);
             e.target.src = 'https://via.placeholder.com/400x200?text=Event+Image';
           }}
+          onLoad={() => console.log('Image loaded successfully:', imageUrl)}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
