@@ -74,11 +74,42 @@ class EventRepository {
 
   /**
    * Find events by location
+   * Optimized with pagination and proper indexing
    */
-  async findByLocation(location) {
-    return await Event.find({ 
-      location: new RegExp(location, 'i') 
-    });
+  async findByLocation(location, options = {}) {
+    const { 
+      page = 1, 
+      limit = 20, 
+      status = 'approved' 
+    } = options;
+    
+    const skip = (page - 1) * limit;
+    
+    // Use case-insensitive exact match or starts-with for better index usage
+    // For partial matching, consider using text search index instead
+    const query = {
+      status,
+      location: { $regex: `^${location}`, $options: 'i' } // Starts with location (uses index better)
+    };
+    
+    const [events, total] = await Promise.all([
+      Event.find(query)
+        .sort({ date: 1 }) // Sort by upcoming events
+        .skip(skip)
+        .limit(limit)
+        .lean(), // Use lean() for better performance (returns plain JS objects)
+      Event.countDocuments(query)
+    ]);
+    
+    return {
+      events,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
   }
 
   /**

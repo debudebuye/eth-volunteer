@@ -87,13 +87,13 @@ class EventService {
   }
 
   /**
-   * Get events by location
+   * Get events by location with pagination
    */
-  async getEventsByLocation(location) {
+  async getEventsByLocation(location, options = {}) {
     if (!location) {
       throw new BadRequestError('Location parameter is required');
     }
-    return await eventRepository.findByLocation(location);
+    return await eventRepository.findByLocation(location, options);
   }
 
   /**

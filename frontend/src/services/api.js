@@ -90,7 +90,8 @@ export const authAPI = {
 export const eventsAPI = {
   getAll: () => API.get('/events/all'),
   getById: (id) => API.get(`/events/${id}`),
-  getByLocation: (location) => API.get(`/events/by-location?location=${location}`),
+  getByLocation: (location, page = 1, limit = 20, status = 'approved') => 
+    API.get(`/events/by-location?location=${location}&page=${page}&limit=${limit}&status=${status}`),
   create: (data) => API.post('/events/create', data),
   update: (id, data) => API.put(`/events/${id}`, data),
   delete: (id) => API.delete(`/events/${id}`),
@@ -116,7 +117,9 @@ export const eventsAPI = {
 export const userAPI = {
   getProfile: (userId) => API.get(`/users/${userId}`),
   updateProfile: (userId, data) => API.put(`/users/${userId}`, data),
-  getJoinedEvents: (userId) => API.get(`/joined-events?userId=${userId}`),
+  getJoinedEvents: (userId) => API.get(`/users/joined-events?userId=${userId}`),
+  joinEvent: (userId, eventId) => API.post('/users/join-event', { userId, eventId }),
+  unjoinEvent: (userId, eventId) => API.post('/users/unjoin-event', { userId, eventId }),
   blockUser: (userId) => API.put(`/users/block/${userId}`),
   unblockUser: (userId) => API.put(`/users/unblock/${userId}`),
   getAllVolunteers: () => API.get('/users/volunteers'),

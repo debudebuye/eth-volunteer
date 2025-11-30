@@ -4,9 +4,12 @@ import Navbar from "./Navbar";
 import TabNavigation from "./TabNavigation";
 import EventCard from "./EventCard";
 import { API_URL } from "../../config/api.config";
+import useAuthStore from "../../store/authStore";
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthStore();
+  
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]); // For search results
   const [activeTab, setActiveTab] = useState("foryou");
@@ -17,16 +20,30 @@ const VolunteerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState(""); // For search functionality
   const [comments, setComments] = useState({});
 
-  const user = JSON.parse(localStorage.getItem("user"));
   const profileImage = user?.profileImage || null;
 
+  // Redirect to login if no user found
   useEffect(() => {
+    if (!isAuthenticated || !user || !user._id) {
+      console.error("No valid user session found. Redirecting to login...");
+      navigate("/login");
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  useEffect(() => {
+    // Only fetch if user is loaded
+    if (!user || !user._id) {
+      console.error("User not found in localStorage or missing _id");
+      setError("User session not found. Please log in again.");
+      return;
+    }
+
     if (activeTab === "foryou") {
       fetchEventsByLocation();
     } else if (activeTab === "joined") {
       fetchJoinedEvents();
     }
-  }, [activeTab]);
+  }, [activeTab, user?._id]);
 
   useEffect(() => {
     // Filter events whenever the search term or events change
@@ -40,13 +57,16 @@ const VolunteerDashboard = () => {
     try {
       const location = user?.location || "defaultLocation";
       const response = await fetch(
-        `${API_URL}/events/by-location?location=${location}`
+        `${API_URL}/events/by-location?location=${location}&page=1&limit=50&status=approved`
       );
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-      const data = await response.json();
-      setEvents(Array.isArray(data) ? data : []);
+      const responseData = await response.json();
+      // Handle new pagination response structure: { success, data: { events, pagination } }
+      const data = responseData.data || responseData;
+      const eventsList = data.events || data;
+      setEvents(Array.isArray(eventsList) ? eventsList : []);
     } catch (error) {
       console.error("Error fetching events by location:", error);
       setEvents([]);
@@ -56,16 +76,19 @@ const VolunteerDashboard = () => {
   const fetchJoinedEvents = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
       const userId = user?._id;
       if (!userId) {
-        throw new Error("User ID is missing.");
+        console.error("User ID is missing. User object:", user);
+        setError("User session expired. Please log in again.");
+        setEvents([]);
+        return;
       }
 
-      const url = `${API_URL}/joined-events?userId=${userId}`;
+      const url = `${API_URL}/users/joined-events?userId=${userId}`;
       const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: 'include', // Send cookies with request
       });
 
       if (!response.ok) {
@@ -73,9 +96,13 @@ const VolunteerDashboard = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const data = await response.json();
-      setEvents(data);
-      setJoinedEvents(data.map((event) => event._id));
+      const responseData = await response.json();
+      // Handle response structure: { success, data: [...] } or just [...]
+      const data = responseData.data || responseData;
+      const eventsList = Array.isArray(data) ? data : [];
+      
+      setEvents(eventsList);
+      setJoinedEvents(eventsList.map((event) => event._id));
       setError(null);
     } catch (error) {
       console.error("Error fetching joined events:", error);
@@ -87,9 +114,8 @@ const VolunteerDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    const { logout } = useAuthStore.getState();
+    logout();
     navigate("/login");
   };
 
@@ -106,8 +132,8 @@ const VolunteerDashboard = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          credentials: 'include', // Send cookies with request
           body: JSON.stringify({ eventId, userId, text: commentText }),
         }
       );
@@ -141,13 +167,13 @@ const VolunteerDashboard = () => {
       const endpoint = isJoined ? "unjoin-event" : "join-event";
   
       const response = await fetch(
-        `${API_URL}/${endpoint}`,
+        `${API_URL}/users/${endpoint}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          credentials: 'include', // Send cookies with request
           body: JSON.stringify({ userId: user?._id, eventId }),
         }
       );
@@ -209,8 +235,8 @@ const VolunteerDashboard = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          credentials: 'include', // Send cookies with request
           body: JSON.stringify({ eventId, userId }),
         }
       );
@@ -256,6 +282,12 @@ const VolunteerDashboard = () => {
       <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex-grow flex flex-col items-center justify-center p-6">
         <div className="w-full space-y-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+              <strong className="font-bold">Error: </strong>
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
           {isLoading ? (
             <p className="text-center">Loading...</p>
           ) : filteredEvents.length > 0 ? (

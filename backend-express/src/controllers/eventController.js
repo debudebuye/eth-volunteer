@@ -81,13 +81,20 @@ class EventController {
   });
 
   /**
-   * Get events by location
-   * GET /api/events/by-location
+   * Get events by location with pagination
+   * GET /api/events/by-location?location=Addis&page=1&limit=20&status=approved
    */
   getEventsByLocation = asyncHandler(async (req, res) => {
-    const { location } = req.query;
-    const events = await eventService.getEventsByLocation(location);
-    successResponse(res, { events }, 'Events fetched successfully');
+    const { location, page, limit, status } = req.query;
+    
+    const options = {
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 20,
+      status: status || 'approved'
+    };
+    
+    const result = await eventService.getEventsByLocation(location, options);
+    successResponse(res, result, 'Events fetched successfully');
   });
 
   /**

@@ -1,16 +1,22 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import useAuthStore from "../../store/authStore";
 
 const NgoDashboard = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuthStore();
 
-  console.log(localStorage.getItem("token"));
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      console.error("No valid NGO session found. Redirecting to login...");
+      navigate("/login");
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("ngo");
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login-ngo");
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -28,7 +34,7 @@ const NgoDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center p-6">
-        <h2 className="text-2xl font-bold mb-4">Welcome, NGO</h2>
+        <h2 className="text-2xl font-bold mb-4">Welcome, {user?.organization || user?.name || 'NGO'}</h2>
         <p className="text-gray-700">Manage your events, track volunteer participation, and more.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">

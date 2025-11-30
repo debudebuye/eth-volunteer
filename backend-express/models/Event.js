@@ -36,5 +36,6 @@ EventSchema.index({ location: 1 }); // For location-based queries
 EventSchema.index({ createdBy: 1 }); // For NGO's events queries
 EventSchema.index({ likes: -1 }); // For sorting by popularity
 EventSchema.index({ status: 1, date: 1 }); // Compound index for approved events by date
+EventSchema.index({ status: 1, location: 1, date: 1 }); // Compound index for location queries with status filter
 
 module.exports = mongoose.model("Event", EventSchema); 
