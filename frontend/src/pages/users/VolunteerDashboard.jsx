@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import TabNavigation from "./TabNavigation";
 import EventCard from "./EventCard";
+import LoadingSkeleton from "../../components/LoadingSkeleton";
+import EmptyState from "../../components/EmptyState";
 import { API_URL } from "../../config/api.config";
 import useAuthStore from "../../store/authStore";
 
@@ -272,39 +274,72 @@ const VolunteerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Enhanced Navbar */}
       <Navbar
         user={user}
         profileImage={profileImage}
         handleLogout={handleLogout}
-        handleSearch={handleSearch} // Pass the search handler
+        handleSearch={handleSearch}
       />
+      
+      {/* Tab Navigation */}
       <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="flex-grow flex flex-col items-center justify-center p-6">
-        <div className="w-full space-y-6">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-              <strong className="font-bold">Error: </strong>
-              <span className="block sm:inline">{error}</span>
+      
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm animate-fade-in">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">
+                  {error}
+                </p>
+              </div>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="space-y-6">
           {isLoading ? (
-            <p className="text-center">Loading...</p>
+            <LoadingSkeleton />
           ) : filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <EventCard
-                key={event._id}
-                event={event}
-                user={user}
-                likes={likes}
-                joinedEvents={joinedEvents}
-                handleLike={handleLike}
-                handleJoin={handleJoin}
-                handleCommentSubmit={handleCommentSubmit} // Pass the comment handler
-              />
-            ))
+            <div className="grid gap-6 animate-fade-in">
+              {filteredEvents.map((event, index) => (
+                <div 
+                  key={event._id}
+                  className="transform transition-all duration-300 hover:scale-[1.01]"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <EventCard
+                    event={event}
+                    user={user}
+                    likes={likes}
+                    joinedEvents={joinedEvents}
+                    handleLike={handleLike}
+                    handleJoin={handleJoin}
+                    handleCommentSubmit={handleCommentSubmit}
+                  />
+                </div>
+              ))}
+            </div>
           ) : (
-            <p className="text-gray-700 items-center">No events found.</p>
+            <EmptyState
+              title={activeTab === "foryou" ? "No Events Available" : "No Joined Events"}
+              message={
+                activeTab === "foryou"
+                  ? "There are no events in your area right now. Check back later for new opportunities!"
+                  : "You haven't joined any events yet. Browse the 'For You' tab to find events to join!"
+              }
+              icon={activeTab === "foryou" ? "🔍" : "📅"}
+            />
           )}
         </div>
       </div>
