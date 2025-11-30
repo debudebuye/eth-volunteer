@@ -11,9 +11,10 @@ const ManageVolunteer = () => {
     })
       .then((res) => res.json())
       .then((response) => {
-        // Handle response structure: { success, data: [...] } or just [...]
+        // Handle response structure: { success, data: { users: [...] } }
         const data = response.data || response;
-        setUsers(Array.isArray(data) ? data : []);
+        const usersList = data.users || data;
+        setUsers(Array.isArray(usersList) ? usersList : []);
       })
       .catch((error) => {
         console.error("Error fetching users:", error);

@@ -15,9 +15,10 @@ const ManageNGO = () => {
     )
       .then((res) => res.json())
       .then((response) => {
-        // Handle response structure: { success, data: [...] } or just [...]
+        // Handle response structure: { success, data: { ngos: [...] } }
         const data = response.data || response;
-        setNGOUsers(Array.isArray(data) ? data : []);
+        const ngosList = data.ngos || data;
+        setNGOUsers(Array.isArray(ngosList) ? ngosList : []);
       })
       .catch((error) => {
         console.error("Error fetching NGO users:", error);
