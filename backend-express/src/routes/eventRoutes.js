@@ -6,18 +6,19 @@ const upload = require('../../middleware/upload');
 
 const router = express.Router();
 
-// Public routes
+// IMPORTANT: Specific routes MUST come before catch-all routes like /:eventId
+// Otherwise Express will match /approve as /:eventId with eventId="approve"
+
+// Public routes - specific paths first
 router.get('/approved', eventController.getApprovedEvents);
 router.get('/by-location', eventController.getEventsByLocation);
-router.get('/:eventId', eventController.getEventById);
-router.get('/:eventId/comments', eventController.getComments);
+router.get('/following', eventController.getFollowedEvents);
 
 // User routes (likes, comments, follow)
 router.post('/likes', eventController.likeEvent);
 router.post('/unlike', eventController.unlikeEvent);
 router.post('/follow', eventController.followEvent);
 router.post('/comment', validateComment, eventController.addComment);
-router.get('/following', eventController.getFollowedEvents);
 
 // NGO routes
 router.post(
@@ -65,7 +66,7 @@ router.post(
   eventController.addReply
 );
 
-// Admin routes
+// Admin routes - must come before /:eventId catch-all
 router.get(
   '/pending',
   verifyToken,
@@ -107,5 +108,9 @@ router.put(
   verifyAdmin,
   eventController.unrejectEvent
 );
+
+// Catch-all routes - MUST be last to avoid matching specific routes
+router.get('/:eventId', eventController.getEventById);
+router.get('/:eventId/comments', eventController.getComments);
 
 module.exports = router;
