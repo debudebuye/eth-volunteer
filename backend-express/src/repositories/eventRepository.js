@@ -85,11 +85,11 @@ class EventRepository {
     
     const skip = (page - 1) * limit;
     
-    // Use case-insensitive exact match or starts-with for better index usage
-    // For partial matching, consider using text search index instead
+    // Use case-insensitive contains match for flexible location matching
+    // This allows "Addis" to match "addis", "Addis Ababa", etc.
     const query = {
       status,
-      location: { $regex: `^${location}`, $options: 'i' } // Starts with location (uses index better)
+      location: { $regex: location, $options: 'i' } // Contains location (case-insensitive)
     };
     
     const [events, total] = await Promise.all([
