@@ -23,9 +23,10 @@ const ApproveEvents = () => {
       if (!response.ok) throw new Error("Failed to fetch pending events");
 
       const responseData = await response.json();
-      // Handle response structure: { success, data: [...] } or just [...]
+      // Handle response structure: { success, data: { events: [...] } }
       const data = responseData.data || responseData;
-      setEvents(Array.isArray(data) ? data : []);
+      const eventsList = data.events || data;
+      setEvents(Array.isArray(eventsList) ? eventsList : []);
     } catch (error) {
       setError(error.message);
       console.error("Error fetching pending events:", error);
@@ -41,11 +42,14 @@ const ApproveEvents = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
+        credentials: 'include', // Send cookies for authentication
       });
 
-      if (!response.ok) throw new Error(`Failed to ${status} event`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${status} event`);
+      }
 
       // Optimistically update state without refetching
       setEvents((prevEvents) => prevEvents.filter((event) => event._id !== id));
@@ -56,8 +60,8 @@ const ApproveEvents = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          credentials: 'include', // Send cookies for authentication
         });
 
         if (!emailResponse.ok) {

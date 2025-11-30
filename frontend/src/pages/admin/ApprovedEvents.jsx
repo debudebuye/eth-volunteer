@@ -21,9 +21,10 @@ const ApprovedEvents = () => {
       }
 
       const responseData = await response.json();
-      // Handle response structure: { success, data: [...] } or just [...]
+      // Handle response structure: { success, data: { events: [...] } }
       const data = responseData.data || responseData;
-      setEvents(Array.isArray(data) ? data : []);
+      const eventsList = data.events || data;
+      setEvents(Array.isArray(eventsList) ? eventsList : []);
     } catch (error) {
       console.error("Error fetching approved events:", error);
       setEvents([]); // Set empty array on error

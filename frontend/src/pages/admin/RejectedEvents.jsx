@@ -12,9 +12,10 @@ const RejectedEvents = () => {
     })
       .then((res) => res.json())
       .then((response) => {
-        // Handle response structure: { success, data: [...] } or just [...]
+        // Handle response structure: { success, data: { events: [...] } }
         const data = response.data || response;
-        setRejectedEvents(Array.isArray(data) ? data : []);
+        const eventsList = data.events || data;
+        setRejectedEvents(Array.isArray(eventsList) ? eventsList : []);
       })
       .catch((error) => {
         console.error("Error fetching rejected events:", error);
