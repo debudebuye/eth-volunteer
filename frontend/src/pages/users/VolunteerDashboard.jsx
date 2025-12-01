@@ -156,10 +156,9 @@ const VolunteerDashboard = () => {
         )
       );
 
-      alert("Comment added successfully!");
     } catch (error) {
       console.error("Error submitting comment:", error);
-      alert("Failed to submit comment.");
+      setError("Failed to submit comment. Please try again.");
     }
   };
 
@@ -209,14 +208,12 @@ const VolunteerDashboard = () => {
         )
       );
   
-      alert(isJoined ? "Unjoined successfully!" : "Joined successfully!");
-  
       if (activeTab === "joined") {
         fetchJoinedEvents();
       }
     } catch (error) {
       console.error("Error joining/unjoining event:", error);
-      alert("Failed to join/unjoin event.");
+      setError("Failed to join/unjoin event. Please try again.");
     }
   };
   
@@ -249,23 +246,31 @@ const VolunteerDashboard = () => {
       }
 
       const data = await response.json();
-      setLikes((prevLikes) => ({
-        ...prevLikes,
-        [eventId]: data.event.likes,
-      }));
+      
+      // Handle response structure: { success, data: { event } } or { event }
+      const eventData = data.data?.event || data.event || data;
+      
+      if (eventData && eventData.likes !== undefined) {
+        setLikes((prevLikes) => ({
+          ...prevLikes,
+          [eventId]: eventData.likes,
+        }));
 
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
-          event._id === eventId
-            ? { ...event, likes: data.event.likes, likedBy: data.event.likedBy }
-            : event
-        )
-      );
-
-      alert(data.message || (hasLiked ? "Unliked successfully!" : "Liked successfully!"));
+        setEvents((prevEvents) =>
+          prevEvents.map((event) =>
+            event._id === eventId
+              ? { 
+                  ...event, 
+                  likes: eventData.likes, 
+                  likedBy: eventData.likedBy || event.likedBy 
+                }
+              : event
+          )
+        );
+      }
     } catch (error) {
       console.error("Error liking/unliking event:", error);
-      alert("Failed to like/unlike event.");
+      setError("Failed to like/unlike event. Please try again.");
     }
   };
 
