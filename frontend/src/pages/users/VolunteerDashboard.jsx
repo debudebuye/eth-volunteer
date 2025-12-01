@@ -191,8 +191,29 @@ const VolunteerDashboard = () => {
   
       const data = await response.json();
       
+      // Check if already joined (treat as success)
+      const alreadyJoined = data.message?.toLowerCase().includes('already joined');
+      
       // Check if the operation was successful
-      if (response.ok || data.success) {
+      if (response.ok || data.success || alreadyJoined) {
+        // If already joined, make sure it's in the joinedEvents state
+        if (alreadyJoined && !isJoined) {
+          setJoinedEvents((prev) => [...prev, eventId]);
+          setEvents((prevEvents) =>
+            prevEvents.map((event) =>
+              event._id === eventId
+                ? { ...event, participants: [...(event.participants || []), user._id] }
+                : event
+            )
+          );
+          if (activeTab === "joined") {
+            fetchJoinedEvents();
+          }
+          return; // Exit early
+        }
+        
+        // Normal join/unjoin flow
+        if (response.ok || data.success) {
         // Update the joinedEvents state
         if (isJoined) {
           setJoinedEvents((prev) => prev.filter((id) => id !== eventId));
