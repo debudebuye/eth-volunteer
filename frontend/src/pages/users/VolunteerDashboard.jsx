@@ -68,7 +68,17 @@ const VolunteerDashboard = () => {
       // Handle new pagination response structure: { success, data: { events, pagination } }
       const data = responseData.data || responseData;
       const eventsList = data.events || data;
-      setEvents(Array.isArray(eventsList) ? eventsList : []);
+      const eventsArray = Array.isArray(eventsList) ? eventsList : [];
+      
+      setEvents(eventsArray);
+      
+      // Initialize joinedEvents from the fetched events
+      if (user?._id) {
+        const joined = eventsArray
+          .filter(event => event.participants?.includes(user._id))
+          .map(event => event._id);
+        setJoinedEvents(joined);
+      }
     } catch (error) {
       console.error("Error fetching events by location:", error);
       setEvents([]);
