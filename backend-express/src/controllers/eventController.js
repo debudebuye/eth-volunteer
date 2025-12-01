@@ -13,7 +13,11 @@ class EventController {
    */
   createEvent = asyncHandler(async (req, res) => {
     const ngoId = req.user.id;
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+    
+    // Handle both Cloudinary and local file paths
+    const imagePath = req.file 
+      ? (req.file.path || `/uploads/${req.file.filename}`) 
+      : null;
     
     const eventData = {
       ...req.body,

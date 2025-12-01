@@ -1,17 +1,11 @@
-const multer = require('multer');
-const path = require('path');
+/**
+ * Upload Middleware - Hybrid Approach
+ * Uses local storage in development, Cloudinary in production
+ */
 
-// Set up storage for the uploaded images
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');  // Store uploaded files in the 'uploads' folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // Give the file a unique name
-  },
-});
+const { createUploadMiddleware } = require('../src/config/cloudinary');
 
-// Initialize the multer upload middleware
-const upload = multer({ storage });
+// Create upload middleware based on environment
+const upload = createUploadMiddleware();
 
 module.exports = upload;
