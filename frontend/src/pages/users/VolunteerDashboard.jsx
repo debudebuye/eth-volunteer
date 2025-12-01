@@ -184,46 +184,52 @@ const VolunteerDashboard = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: 'include', // Send cookies with request
+          credentials: 'include',
           body: JSON.stringify({ userId: user?._id, eventId }),
         }
       );
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-      }
-  
       const data = await response.json();
-      console.log("Server response:", data); // Log the response for debugging
+      
+      // Check if the operation was successful
+      if (response.ok || data.success) {
+        // Update the joinedEvents state
+        if (isJoined) {
+          setJoinedEvents((prev) => prev.filter((id) => id !== eventId));
+        } else {
+          setJoinedEvents((prev) => [...prev, eventId]);
+        }
   
-      // Update the joinedEvents state
-      if (isJoined) {
-        setJoinedEvents((prev) => prev.filter((id) => id !== eventId));
+        // Update the events state to reflect the new participants array
+        setEvents((prevEvents) =>
+          prevEvents.map((event) =>
+            event._id === eventId
+              ? {
+                  ...event,
+                  participants: isJoined
+                    ? (event.participants || []).filter((id) => id !== user._id)
+                    : [...(event.participants || []), user._id],
+                }
+              : event
+          )
+        );
+  
+        // Refresh joined events if on that tab
+        if (activeTab === "joined") {
+          fetchJoinedEvents();
+        }
       } else {
-        setJoinedEvents((prev) => [...prev, eventId]);
-      }
-  
-      // Update the events state to reflect the new participants array
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
-          event._id === eventId
-            ? {
-                ...event,
-                participants: isJoined
-                  ? event.participants.filter((id) => id !== user._id) // Remove user from participants
-                  : [...event.participants, user._id], // Add user to participants
-              }
-            : event
-        )
-      );
-  
-      if (activeTab === "joined") {
-        fetchJoinedEvents();
+        // If error, refresh the events to get the correct state from backend
+        if (activeTab === "foryou") {
+          fetchEventsByLocation();
+        } else {
+          fetchJoinedEvents();
+        }
+        throw new Error(data.message || "Failed to join/unjoin event");
       }
     } catch (error) {
       console.error("Error joining/unjoining event:", error);
-      setError("Failed to join/unjoin event. Please try again.");
+      setError(error.message || "Failed to join/unjoin event. Please try again.");
     }
   };
   
