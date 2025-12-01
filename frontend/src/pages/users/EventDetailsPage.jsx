@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { API_URL, API_BASE_URL } from "../../config/api.config";
+import useAuthStore from "../../store/authStore";
 
 const EventDetails = () => {
-  const { eventId } = useParams(); // Get the event ID from the URL
+  const { eventId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [comments, setComments] = useState([]); // State to store comments
-  const [newComment, setNewComment] = useState(""); // State for new comment input
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
 
   // Fetch event details and comments
   useEffect(() => {
@@ -41,9 +43,10 @@ const EventDetails = () => {
   // Handle submitting a new comment
   const handleCommentSubmit = async () => {
     try {
-      const userId = JSON.parse(localStorage.getItem("user"))?._id; // Get the logged-in user's ID
+      const userId = user?._id;
       if (!userId) {
-        throw new Error("User ID is missing.");
+        alert("Please log in to comment");
+        return;
       }
 
       const response = await fetch(
@@ -91,12 +94,16 @@ const EventDetails = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
       <div className="bg-white p-6 shadow-lg rounded-lg w-full max-w-2xl">
         <h1 className="text-2xl font-bold mb-4">{event.name}</h1>
-        <img
-        src={`${API_BASE_URL}${event.image.replace("..", "")}`}
-
-          alt={event.name}
-          className="w-full h-64 object-cover rounded-lg mb-4"
-        />
+        {event.image && (
+          <img
+            src={`${API_BASE_URL}${event.image.startsWith('/') ? event.image : '/' + event.image}`}
+            alt={event.name}
+            className="w-full h-64 object-cover rounded-lg mb-4"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        )}
         <p className="text-gray-600 mb-2">{event.description}</p>
         <p className="text-gray-600 mb-2">Location: {event.location}</p>
         <p className="text-gray-600 mb-2">Date: {new Date(event.date).toLocaleDateString()}</p>
