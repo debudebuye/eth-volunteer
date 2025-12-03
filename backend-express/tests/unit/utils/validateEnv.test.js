@@ -16,7 +16,7 @@ describe('Environment Validation', () => {
     process.env.FRONTEND_URL = 'http://localhost:3000';
     process.env.BACKEND_BASEURL = 'http://localhost:5005';
     process.env.EMAIL_USER = 'test@test.com';
-    process.env.EMAIL_PASS = 'password';
+    process.env.EMAIL_PASSWORD = 'password';
   });
 
   afterAll(() => {

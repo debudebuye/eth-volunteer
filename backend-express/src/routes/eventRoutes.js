@@ -58,14 +58,6 @@ router.delete(
   eventController.deleteEvent
 );
 
-router.post(
-  '/:eventId/comments/:commentId/reply',
-  verifyToken,
-  verifyNGO,
-  validateComment,
-  eventController.addReply
-);
-
 // Admin routes - must come before /:eventId catch-all
 router.get(
   '/pending',
@@ -109,8 +101,24 @@ router.put(
   eventController.unrejectEvent
 );
 
+router.delete(
+  '/admin/delete/:eventId',
+  verifyToken,
+  verifyAdmin,
+  eventController.deleteEventByAdmin
+);
+
+// Comment like/unlike routes
+router.post('/:eventId/comments/:commentId/like', eventController.likeComment);
+router.post('/:eventId/comments/:commentId/unlike', eventController.unlikeComment);
+
+// Comment edit/delete routes
+router.put('/:eventId/comments/:commentId', eventController.updateComment);
+router.delete('/:eventId/comments/:commentId', eventController.deleteComment);
+
 // Catch-all routes - MUST be last to avoid matching specific routes
 router.get('/:eventId', eventController.getEventById);
 router.get('/:eventId/comments', eventController.getComments);
+router.post('/:eventId/comments/:commentId/reply', eventController.addReply);
 
 module.exports = router;

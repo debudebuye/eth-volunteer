@@ -134,6 +134,41 @@ class AuthController {
     
     successResponse(res, null, 'Logged out successfully');
   });
+
+  /**
+   * Check email availability
+   * GET /api/auth/check-email?email=test@example.com
+   */
+  checkEmail = asyncHandler(async (req, res) => {
+    const { email } = req.query;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    const result = await authService.checkEmailExists(email);
+    
+    if (result.exists) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          available: false,
+          message: 'This email is already registered. Please use a different email or login with your existing account.',
+        },
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        available: true,
+        message: 'Email is available',
+      },
+    });
+  });
 }
 
 module.exports = new AuthController();

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../../config/api.config";
+import Toast from "../../components/Toast";
 
 const ApprovedEvents = () => {
   const [events, setEvents] = useState([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchApprovedEvents();
@@ -38,6 +40,7 @@ const ApprovedEvents = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include authentication cookies
       });
 
       if (!response.ok) {
@@ -47,35 +50,47 @@ const ApprovedEvents = () => {
       // After successful disapproval, refetch approved events
       const updatedEvents = events.filter((event) => event._id !== eventId);
       setEvents(updatedEvents);
+      setToast({ message: "Event moved to pending successfully!", type: "success" });
     } catch (error) {
       console.error("Error disapproving event:", error);
+      setToast({ message: "Failed to disapprove event. Please try again.", type: "error" });
     }
   };
 
   const deleteEvent = async (eventId) => {
     try {
-      const response = await fetch(`${API_URL}/events/delete/${eventId}`, {
+      const response = await fetch(`${API_URL}/events/admin/delete/${eventId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include authentication cookies
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete the event");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete the event");
       }
 
-      // After successful deletion, remove the event from the list
       const updatedEvents = events.filter((event) => event._id !== eventId);
       setEvents(updatedEvents);
-      setIsDeleteDialogOpen(false); // Close the delete dialog
+      setIsDeleteDialogOpen(false);
+      setToast({ message: "Event deleted successfully!", type: "success" });
     } catch (error) {
       console.error("Error deleting event:", error);
+      setToast({ message: error.message || "Failed to delete event", type: "error" });
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <h2 className="text-3xl font-semibold text-gray-800 mb-6">Approved Events</h2>
 
       {events.length === 0 ? (

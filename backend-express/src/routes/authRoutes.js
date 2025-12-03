@@ -281,4 +281,46 @@ router.post(
   authController.logout
 );
 
+/**
+ * @swagger
+ * /api/auth/check-email:
+ *   get:
+ *     summary: Check if email is available for registration
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *         description: Email to check
+ *     responses:
+ *       200:
+ *         description: Email availability status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     available:
+ *                       type: boolean
+ *                     message:
+ *                       type: string
+ *                     accountType:
+ *                       type: string
+ *                       enum: [volunteer, NGO, admin]
+ *       400:
+ *         description: Email parameter is required
+ */
+router.get(
+  '/check-email',
+  authController.checkEmail
+);
+
 module.exports = router;

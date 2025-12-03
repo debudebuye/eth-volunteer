@@ -1,6 +1,7 @@
 import axios from 'axios';
 import useAuthStore from '../store/authStore';
 import { API_URL } from '../config/api.config';
+import toast from '../utils/toast';
 
 // Create axios instance with base configuration
 const API = axios.create({
@@ -43,13 +44,18 @@ API.interceptors.response.use(
                              error.config?.url?.includes('/register');
       
       if (error.response.status === 401 && !isLoginAttempt) {
+        toast.warning('Your session has expired. Please log in again.', 5000);
         useAuthStore.getState().logout();
-        window.location.href = '/login';
+        // Delay redirect slightly to show the toast
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 500);
       }
 
       // Handle 403 Forbidden
       if (error.response.status === 403) {
         console.error('Access forbidden:', error.response.data);
+        toast.error('Access denied. You do not have permission to perform this action.');
       }
 
       // Handle 404 Not Found
@@ -60,9 +66,11 @@ API.interceptors.response.use(
       // Handle 500 Server Error
       if (error.response.status >= 500) {
         console.error('Server error:', error.response.data);
+        toast.error('Server error. Please try again later.');
       }
     } else if (error.request) {
       console.error('Network error - no response received:', error.message);
+      toast.error('Network error. Please check your connection.');
     } else {
       console.error('Request setup error:', error.message);
     }
@@ -82,6 +90,7 @@ export const authAPI = {
   loginNGO: (data) => API.post('/auth/login-ngo', data),
   loginAdmin: (data) => API.post('/admin/login', data),
   logout: () => API.post('/auth/logout'),
+  checkEmail: (email) => API.get(`/auth/check-email?email=${encodeURIComponent(email)}`),
 };
 
 // ============================================
@@ -94,7 +103,8 @@ export const eventsAPI = {
     API.get(`/events/by-location?location=${location}&page=${page}&limit=${limit}&status=${status}`),
   create: (data) => API.post('/events/create', data),
   update: (id, data) => API.put(`/events/${id}`, data),
-  delete: (id) => API.delete(`/events/${id}`),
+  delete: (id) => API.delete(`/events/admin/delete/${id}`), // Admin delete endpoint
+  deleteByNGO: (id) => API.delete(`/events/delete/${id}`), // NGO delete endpoint
   
   // Event actions
   like: (eventId, userId) => API.post('/events/likes', { eventId, userId }),
@@ -106,6 +116,8 @@ export const eventsAPI = {
   // Event management
   approve: (id) => API.put(`/events/approve/${id}`),
   reject: (id) => API.put(`/events/reject/${id}`),
+  unreject: (id) => API.put(`/events/unreject/${id}`),
+  disapprove: (id) => API.put(`/events/disapprove/${id}`),
   getApproved: () => API.get('/events/approved'),
   getRejected: () => API.get('/events/rejected'),
   getPending: () => API.get('/events/pending'),

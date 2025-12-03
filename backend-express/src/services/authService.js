@@ -101,15 +101,42 @@ class AuthService {
   }
 
   /**
+   * Check if email exists across all user types
+   */
+  async checkEmailExists(email) {
+    const normalizedEmail = email.toLowerCase();
+    
+    const [existingUser, existingNGO, existingAdmin] = await Promise.all([
+      userRepository.findByEmail(normalizedEmail),
+      ngoRepository.findByEmail(normalizedEmail),
+      adminRepository.findByEmail(normalizedEmail),
+    ]);
+
+    if (existingUser) {
+      return { exists: true, type: 'volunteer' };
+    }
+    if (existingNGO) {
+      return { exists: true, type: 'NGO' };
+    }
+    if (existingAdmin) {
+      return { exists: true, type: 'admin' };
+    }
+
+    return { exists: false };
+  }
+
+  /**
    * Register volunteer
    */
   async registerVolunteer(userData) {
     const { name, email, password, location } = userData;
 
-    // Check if user already exists
-    const existingUser = await userRepository.findByEmail(email);
-    if (existingUser) {
-      throw new ConflictError('Email already exists');
+    // Check if email exists across all user types
+    const emailCheck = await this.checkEmailExists(email);
+    if (emailCheck.exists) {
+      throw new ConflictError(
+        'This email is already registered. Please use a different email or login with your existing account.'
+      );
     }
 
     // Hash password
@@ -138,10 +165,12 @@ class AuthService {
   async registerNGO(ngoData) {
     const { name, email, password, organization } = ngoData;
 
-    // Check if NGO already exists
-    const existingNGO = await ngoRepository.findByEmail(email);
-    if (existingNGO) {
-      throw new ConflictError('NGO with this email already exists');
+    // Check if email exists across all user types
+    const emailCheck = await this.checkEmailExists(email);
+    if (emailCheck.exists) {
+      throw new ConflictError(
+        'This email is already registered. Please use a different email or login with your existing account.'
+      );
     }
 
     // Hash password
@@ -176,10 +205,12 @@ class AuthService {
       throw new BadRequestError('Admin registration limit reached. Maximum 2 admins allowed.');
     }
 
-    // Check if admin already exists
-    const existingAdmin = await adminRepository.findByEmail(email);
-    if (existingAdmin) {
-      throw new ConflictError('Admin with this email already exists');
+    // Check if email exists across all user types
+    const emailCheck = await this.checkEmailExists(email);
+    if (emailCheck.exists) {
+      throw new ConflictError(
+        'This email is already registered. Please use a different email or login with your existing account.'
+      );
     }
 
     // Hash password

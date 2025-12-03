@@ -13,13 +13,14 @@ const VolunteerDashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
   
   const [events, setEvents] = useState([]);
-  const [filteredEvents, setFilteredEvents] = useState([]); // For search results
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [activeTab, setActiveTab] = useState("foryou");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [joinedEvents, setJoinedEvents] = useState([]);
   const [likes, setLikes] = useState({});
-  const [searchTerm, setSearchTerm] = useState(""); // For search functionality
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("all");
   const [comments, setComments] = useState({});
 
   const profileImage = user?.profileImage || null;
@@ -40,6 +41,9 @@ const VolunteerDashboard = () => {
       return;
     }
 
+    // Clear search when switching tabs
+    setSearchTerm("");
+    
     if (activeTab === "foryou") {
       fetchEventsByLocation();
     } else if (activeTab === "joined") {
@@ -48,29 +52,58 @@ const VolunteerDashboard = () => {
   }, [activeTab, user?._id]);
 
   useEffect(() => {
-    // Filter events whenever the search term or events change
-    const filtered = events.filter((event) =>
-      event.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter events by search term and location
+    let filtered = events;
+    
+    // Filter by search term (name, description, or location)
+    if (searchTerm) {
+      filtered = filtered.filter((event) =>
+        event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filter by selected location
+    if (selectedLocation !== "all") {
+      filtered = filtered.filter((event) =>
+        event.location?.toLowerCase() === selectedLocation.toLowerCase()
+      );
+    }
+    
     setFilteredEvents(filtered);
-  }, [searchTerm, events]);
+  }, [searchTerm, selectedLocation, events]);
+
+  // Get unique locations from events
+  const getUniqueLocations = () => {
+    const locations = events
+      .map(event => event.location)
+      .filter(location => location); // Remove null/undefined
+    return [...new Set(locations)].sort();
+  };
 
   const fetchEventsByLocation = async () => {
     try {
-      const location = user?.location || "defaultLocation";
+      // Fetch all approved events instead of by location
       const response = await fetch(
-        `${API_URL}/events/by-location?location=${location}&page=1&limit=50&status=approved`
+        `${API_URL}/events/approved`
       );
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
       const responseData = await response.json();
-      // Handle new pagination response structure: { success, data: { events, pagination } }
       const data = responseData.data || responseData;
       const eventsList = data.events || data;
       const eventsArray = Array.isArray(eventsList) ? eventsList : [];
       
       setEvents(eventsArray);
+      
+      // Initialize likes count for all events
+      const likesMap = {};
+      eventsArray.forEach(event => {
+        likesMap[event._id] = event.likesCount ?? event.likes ?? 0;
+      });
+      setLikes(likesMap);
       
       // Initialize joinedEvents from the fetched events
       if (user?._id) {
@@ -80,7 +113,7 @@ const VolunteerDashboard = () => {
         setJoinedEvents(joined);
       }
     } catch (error) {
-      console.error("Error fetching events by location:", error);
+      console.error("Error fetching events:", error);
       setEvents([]);
     }
   };
@@ -109,9 +142,11 @@ const VolunteerDashboard = () => {
       }
 
       const responseData = await response.json();
-      // Handle response structure: { success, data: [...] } or just [...]
+      // Handle response structure: { success, data: { events: [...] } } or { data: [...] } or just [...]
       const data = responseData.data || responseData;
-      const eventsList = Array.isArray(data) ? data : [];
+      const eventsList = data.events || (Array.isArray(data) ? data : []);
+      
+      console.log('Fetched joined events:', eventsList.length, 'events');
       
       setEvents(eventsList);
       setJoinedEvents(eventsList.map((event) => event._id));
@@ -161,7 +196,11 @@ const VolunteerDashboard = () => {
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
           event._id === eventId
-            ? { ...event, comments: [...(event.comments || []), data.comment] }
+            ? { 
+                ...event, 
+                comments: [...(event.comments || []), data.comment],
+                commentCount: (event.commentCount || 0) + 1
+              }
             : event
         )
       );
@@ -194,26 +233,30 @@ const VolunteerDashboard = () => {
       // Check if already joined (treat as success)
       const alreadyJoined = data.message?.toLowerCase().includes('already joined');
       
-      // Check if the operation was successful
-      if (response.ok || data.success || alreadyJoined) {
-        // If already joined, make sure it's in the joinedEvents state
-        if (alreadyJoined && !isJoined) {
+      // If already joined error, sync the state
+      if (alreadyJoined) {
+        if (!isJoined) {
           setJoinedEvents((prev) => [...prev, eventId]);
           setEvents((prevEvents) =>
             prevEvents.map((event) =>
               event._id === eventId
-                ? { ...event, participants: [...(event.participants || []), user._id] }
+                ? { 
+                    ...event, 
+                    participants: [...(event.participants || []), user._id],
+                    participantCount: (event.participantCount || 0) + 1
+                  }
                 : event
             )
           );
-          if (activeTab === "joined") {
-            fetchJoinedEvents();
-          }
-          return; // Exit early
         }
-        
-        // Normal join/unjoin flow
-        if (response.ok || data.success) {
+        if (activeTab === "joined") {
+          fetchJoinedEvents();
+        }
+        return; // Exit early
+      }
+      
+      // Check if the operation was successful
+      if (response.ok || data.success) {
         // Update the joinedEvents state
         if (isJoined) {
           setJoinedEvents((prev) => prev.filter((id) => id !== eventId));
@@ -230,6 +273,9 @@ const VolunteerDashboard = () => {
                   participants: isJoined
                     ? (event.participants || []).filter((id) => id !== user._id)
                     : [...(event.participants || []), user._id],
+                  participantCount: isJoined
+                    ? Math.max(0, (event.participantCount || 0) - 1)
+                    : (event.participantCount || 0) + 1,
                 }
               : event
           )
@@ -258,56 +304,115 @@ const VolunteerDashboard = () => {
     try {
       const userId = user?._id;
       if (!userId) {
-        throw new Error("User ID is missing.");
+        setError("Please log in to like events.");
+        return;
       }
 
       const event = events.find((event) => event._id === eventId);
-      const hasLiked = event?.likedBy?.includes(userId);
+      
+      // Convert likedBy array to strings for comparison
+      const likedByStrings = (event?.likedBy || []).map(id => 
+        typeof id === 'object' ? id.toString() : String(id)
+      );
+      const userIdString = String(userId);
+      const hasLiked = likedByStrings.includes(userIdString);
+
+      console.log('Like check:', {
+        eventId,
+        userId: userIdString,
+        likedBy: likedByStrings,
+        hasLiked
+      });
 
       const endpoint = hasLiked ? "unlike" : "likes";
-      const response = await fetch(
-        `${API_URL}/events/${endpoint}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: 'include', // Send cookies with request
-          body: JSON.stringify({ eventId, userId }),
-        }
+      
+      // Optimistic update
+      setEvents((prevEvents) =>
+        prevEvents.map((e) =>
+          e._id === eventId
+            ? {
+                ...e,
+                likes: hasLiked ? (e.likes || 1) - 1 : (e.likes || 0) + 1,
+                likedBy: hasLiked
+                  ? (e.likedBy || []).filter((id) => String(id) !== userIdString)
+                  : [...(e.likedBy || []), userId],
+              }
+            : e
+        )
       );
 
+      setLikes((prevLikes) => ({
+        ...prevLikes,
+        [eventId]: hasLiked
+          ? (prevLikes[eventId] || 1) - 1
+          : (prevLikes[eventId] || 0) + 1,
+      }));
+
+      const response = await fetch(`${API_URL}/events/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ eventId, userId }),
+      });
+
       if (!response.ok) {
+        // Revert optimistic update on error
+        setEvents((prevEvents) =>
+          prevEvents.map((e) =>
+            e._id === eventId
+              ? {
+                  ...e,
+                  likes: hasLiked ? (e.likes || 0) + 1 : (e.likes || 1) - 1,
+                  likedBy: hasLiked
+                    ? [...(e.likedBy || []), userId]
+                    : (e.likedBy || []).filter((id) => String(id) !== userIdString),
+                }
+              : e
+          )
+        );
+
+        setLikes((prevLikes) => ({
+          ...prevLikes,
+          [eventId]: hasLiked
+            ? (prevLikes[eventId] || 0) + 1
+            : (prevLikes[eventId] || 1) - 1,
+        }));
+
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        throw new Error(errorData.message || `Failed to ${hasLiked ? "unlike" : "like"} event`);
       }
 
       const data = await response.json();
-      
-      // Handle response structure: { success, data: { event } } or { event }
       const eventData = data.data?.event || data.event || data;
-      
-      if (eventData && eventData.likes !== undefined) {
+
+      // Update with server response
+      if (eventData) {
+        const newLikeCount = eventData.likesCount ?? eventData.likes ?? 0;
+        
         setLikes((prevLikes) => ({
           ...prevLikes,
-          [eventId]: eventData.likes,
+          [eventId]: newLikeCount,
         }));
 
         setEvents((prevEvents) =>
-          prevEvents.map((event) =>
-            event._id === eventId
-              ? { 
-                  ...event, 
-                  likes: eventData.likes, 
-                  likedBy: eventData.likedBy || event.likedBy 
+          prevEvents.map((e) =>
+            e._id === eventId
+              ? {
+                  ...e,
+                  likes: newLikeCount,
+                  likesCount: newLikeCount,
+                  likedBy: eventData.likedBy || e.likedBy,
                 }
-              : event
+              : e
           )
         );
       }
     } catch (error) {
       console.error("Error liking/unliking event:", error);
-      setError("Failed to like/unlike event. Please try again.");
+      setError(error.message || "Failed to like/unlike event. Please try again.");
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -330,6 +435,48 @@ const VolunteerDashboard = () => {
       
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Location Filter - Only show on "For You" tab */}
+        {activeTab === "foryou" && events.length > 0 && (
+          <div className="mb-6 bg-white rounded-xl shadow-md p-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700 font-semibold">📍 Filter by Location:</span>
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
+                >
+                  <option value="all">All Locations</option>
+                  {getUniqueLocations().map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {(searchTerm || selectedLocation !== "all") && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>
+                    Showing {filteredEvents.length} of {events.length} events
+                  </span>
+                  {(searchTerm || selectedLocation !== "all") && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedLocation("all");
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-medium underline"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Error Alert */}
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm animate-fade-in">

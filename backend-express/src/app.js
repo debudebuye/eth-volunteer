@@ -25,6 +25,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const ngoRoutes = require('./routes/ngoRoutes');
 const eventRoutes = require('./routes/eventRoutes');
+const cacheRoutes = require('./routes/cacheRoutes');
 
 const app = express();
 
@@ -150,6 +151,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api', userRoutes);
 app.use('/api/ngo', ngoRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/cache', cacheRoutes);
 
 /**
  * @swagger

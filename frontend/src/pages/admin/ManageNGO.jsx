@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { FaTrash, FaBan, FaCheckCircle } from "react-icons/fa"; // Adding icons for actions
+import { FaTrash, FaBan, FaCheckCircle } from "react-icons/fa";
 import { API_URL } from "../../config/api.config";
+import Toast from "../../components/Toast";
 
 const ManageNGO = () => {
   const [ngoUsers, setNGOUsers] = useState([]);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     // Fetch NGO users from the API
@@ -32,11 +34,20 @@ const ManageNGO = () => {
 
     fetch(
       `${API_URL}/ngo/ngo-users/${id}`,
-      { method: "DELETE" }
+      { 
+        method: "DELETE",
+        credentials: "include" // Include authentication cookies
+      }
     )
       .then((res) => res.json())
-      .then(() => setNGOUsers(ngoUsers.filter((ngo) => ngo._id !== id)))
-      .catch((error) => console.error("Error deleting NGO:", error));
+      .then(() => {
+        setNGOUsers(ngoUsers.filter((ngo) => ngo._id !== id));
+        setToast({ message: "NGO deleted successfully!", type: "success" });
+      })
+      .catch((error) => {
+        console.error("Error deleting NGO:", error);
+        setToast({ message: "Failed to delete NGO. Please try again.", type: "error" });
+      });
   };
 
   // Function to block/unblock NGO user
@@ -46,6 +57,7 @@ const ManageNGO = () => {
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Include authentication cookies
         body: JSON.stringify({ status }),
       }
     )
@@ -62,6 +74,13 @@ const ManageNGO = () => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <h2 className="text-3xl font-semibold text-gray-800 mb-6">Manage NGO Users</h2>
       {ngoUsers.length === 0 ? (
         <p className="text-gray-600">No NGOs found.</p>

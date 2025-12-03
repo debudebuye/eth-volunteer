@@ -43,7 +43,7 @@ const ApproveEvents = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: 'include', // Send cookies for authentication
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -51,27 +51,16 @@ const ApproveEvents = () => {
         throw new Error(errorData.message || `Failed to ${status} event`);
       }
 
-      // Optimistically update state without refetching
+      // Remove event from list after successful status update
       setEvents((prevEvents) => prevEvents.filter((event) => event._id !== id));
-
-      // Send email notification if the event is approved
-      if (status === "approve") {
-        const emailResponse = await fetch(`${API_URL}/events/send-email/${id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: 'include', // Send cookies for authentication
-        });
-
-        if (!emailResponse.ok) {
-          const errorData = await emailResponse.json();
-          throw new Error(errorData.message || "Failed to send email notification");
-        }
-      }
+      
+      // Show success message
+      setError(`Event ${status === 'approve' ? 'approved' : 'rejected'} successfully!`);
+      setTimeout(() => setError(""), 3000);
+      
     } catch (error) {
       console.error(`Error ${status}ing event:`, error);
-      setError(error.message); // Display the error to the user
+      setError(error.message);
     }
   };
 

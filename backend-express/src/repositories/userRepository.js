@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const Event = require('../../models/Event');
 
 /**
  * User Repository - Handles all database operations for users
@@ -19,6 +20,15 @@ class UserRepository {
   }
 
   /**
+   * Find user by ID (optimized - without arrays)
+   */
+  async findByIdLean(id) {
+    return await User.findById(id)
+      .select('-password -joinedEvents')
+      .lean();
+  }
+
+  /**
    * Create new user
    */
   async create(userData) {
@@ -30,7 +40,9 @@ class UserRepository {
    * Find all users
    */
   async findAll(filter = {}) {
-    return await User.find(filter).select('-password');
+    return await User.find(filter)
+      .select('-password -joinedEvents')
+      .lean();
   }
 
   /**
@@ -66,9 +78,21 @@ class UserRepository {
    * Add event to user's joined events
    */
   async addJoinedEvent(userId, eventId) {
+    // Update both user's joinedEvents and event's participants with counts
+    await Event.findByIdAndUpdate(
+      eventId,
+      { 
+        $addToSet: { participants: userId },
+        $inc: { participantCount: 1 }
+      }
+    );
+    
     return await User.findByIdAndUpdate(
       userId,
-      { $addToSet: { joinedEvents: eventId } },
+      { 
+        $addToSet: { joinedEvents: eventId },
+        $inc: { joinedEventsCount: 1 }
+      },
       { new: true }
     ).select('-password');
   }
@@ -77,9 +101,21 @@ class UserRepository {
    * Remove event from user's joined events
    */
   async removeJoinedEvent(userId, eventId) {
+    // Update both user's joinedEvents and event's participants with counts
+    await Event.findByIdAndUpdate(
+      eventId,
+      { 
+        $pull: { participants: userId },
+        $inc: { participantCount: -1 }
+      }
+    );
+    
     return await User.findByIdAndUpdate(
       userId,
-      { $pull: { joinedEvents: eventId } },
+      { 
+        $pull: { joinedEvents: eventId },
+        $inc: { joinedEventsCount: -1 }
+      },
       { new: true }
     ).select('-password');
   }

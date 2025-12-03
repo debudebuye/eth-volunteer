@@ -1,6 +1,6 @@
 const express = require('express');
 const userController = require('../controllers/userController');
-const { verifyToken } = require('../../middleware/authMiddleware');
+const { verifyToken, verifyAdmin } = require('../../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -9,9 +9,9 @@ router.get('/users', userController.getAllUsers);
 router.get('/profile/:email', userController.getUserProfile);
 router.put('/update-profile', userController.updateProfile);
 
-// Protected routes
-router.delete('/users/:id', verifyToken, userController.deleteUser);
-router.patch('/users/:id/block', verifyToken, userController.toggleBlockUser);
+// Admin protected routes
+router.delete('/:id', verifyToken, verifyAdmin, userController.deleteUser);
+router.patch('/:id/block', verifyToken, verifyAdmin, userController.toggleBlockUser);
 
 // Event-related user routes
 router.post('/join-event', userController.joinEvent);

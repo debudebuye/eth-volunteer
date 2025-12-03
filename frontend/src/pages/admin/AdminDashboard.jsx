@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { FaUsers, FaRegClipboard, FaCheck, FaTimes, FaSignOutAlt } from "react-icons/fa"; // Importing icons for the navigation
+import { FaUsers, FaRegClipboard, FaCheck, FaTimes, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
 
 import ManageNGO from "./ManageNGO";
 import ManageVolunteer from "./ManageVolunteer";
@@ -8,17 +9,15 @@ import ApproveEvents from "./ApproveEvents";
 import ApprovedEvents from "./ApprovedEvents";
 import RejectedEvents from "./RejectedEvents";
 
-
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("manage-ngo");
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("admin");
-    navigate("/admin"); // No longer needed as we're not navigating away
+  const handleLogout = async () => {
+    await logout();
+    setShowLogoutDialog(false);
   };
 
   return (
@@ -86,7 +85,7 @@ const AdminDashboard = () => {
 
         {/* Logout Button */}
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutDialog(true)}
           className="flex items-center justify-center w-full bg-red-500 px-4 py-3 rounded-lg hover:bg-red-600 transition-all text-white shadow-md"
         >
           <FaSignOutAlt className="mr-2" /> Logout
@@ -102,6 +101,38 @@ const AdminDashboard = () => {
         {activeTab === "approved-events" && <ApprovedEvents />}
         {activeTab === "rejected-events" && <RejectedEvents />}
       </main>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <div className="text-center mb-6">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <FaSignOutAlt className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Confirm Logout</h3>
+              <p className="text-gray-600">
+                Are you sure you want to logout? You will need to login again to access the admin dashboard.
+              </p>
+            </div>
+            
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-semibold shadow-md"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

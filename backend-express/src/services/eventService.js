@@ -3,6 +3,7 @@ const { NotFoundError, BadRequestError, ForbiddenError } = require('../utils/err
 const { EVENT_STATUS } = require('../utils/constants');
 const logger = require('../utils/logger');
 const emailService = require('./emailService');
+const { cache, cacheKeys, cacheTTL } = require('../utils/cache');
 
 /**
  * Event Service - Handles all event-related business logic
@@ -34,6 +35,9 @@ class EventService {
 
     logger.info(`Event created by NGO ${ngoId}: ${event._id}`);
 
+    // Invalidate location-based cache
+    cache.deletePattern(`events:${location}:`);
+
     return {
       message: 'Event created successfully! Pending admin approval.',
       event,
@@ -62,13 +66,27 @@ class EventService {
   }
 
   /**
-   * Get event by ID
+   * Get event by ID (with caching)
    */
   async getEventById(eventId) {
-    const event = await eventRepository.findById(eventId);
+    // Try cache first
+    const cacheKey = cacheKeys.event(eventId);
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      logger.debug(`Cache hit: ${cacheKey}`);
+      return cached;
+    }
+    
+    // Cache miss - query database
+    const event = await eventRepository.findByIdWithComments(eventId);
     if (!event) {
       throw new NotFoundError('Event not found');
     }
+    
+    // Store in cache
+    cache.set(cacheKey, event, cacheTTL.event);
+    logger.debug(`Cache set: ${cacheKey}`);
+    
     return event;
   }
 
@@ -87,13 +105,44 @@ class EventService {
   }
 
   /**
-   * Get events by location with pagination
+   * Get events by location with pagination (with caching)
    */
   async getEventsByLocation(location, options = {}) {
     if (!location) {
       throw new BadRequestError('Location parameter is required');
     }
-    return await eventRepository.findByLocation(location, options);
+    
+    const { page = 1, status = 'approved', userId } = options;
+    
+    // Try cache first (only for non-user-specific queries)
+    if (!userId) {
+      const cacheKey = cacheKeys.eventList(location, page, status);
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        logger.debug(`Cache hit: ${cacheKey}`);
+        return cached;
+      }
+    }
+    
+    const result = await eventRepository.findByLocation(location, options);
+    
+    // If userId provided, batch check participation
+    if (userId && result.events.length > 0) {
+      const eventIds = result.events.map(e => e._id);
+      const joinedIds = await eventRepository.batchCheckParticipation(eventIds, userId);
+      
+      // Add isJoined flag to each event
+      result.events.forEach(event => {
+        event.isJoined = joinedIds.has(event._id.toString());
+      });
+    } else {
+      // Cache result for non-user-specific queries
+      const cacheKey = cacheKeys.eventList(location, page, status);
+      cache.set(cacheKey, result, cacheTTL.eventList);
+      logger.debug(`Cache set: ${cacheKey}`);
+    }
+    
+    return result;
   }
 
   /**
@@ -114,9 +163,15 @@ class EventService {
 
     const updatedEvent = await eventRepository.updateStatus(eventId, EVENT_STATUS.APPROVED);
 
-    // Send email notification
+    // Send email notification to NGO
     try {
-      await emailService.sendEventApprovalEmail(event);
+      const ngoEmail = event.creatorEmail || event.createdBy?.email;
+      if (ngoEmail) {
+        await emailService.sendEventApprovalEmail(event, ngoEmail);
+        logger.info(`Approval email sent to: ${ngoEmail}`);
+      } else {
+        logger.warn(`No email found for event ${eventId}`);
+      }
     } catch (error) {
       logger.error('Failed to send approval email:', error);
       // Don't fail the approval if email fails
@@ -140,6 +195,21 @@ class EventService {
     }
 
     const updatedEvent = await eventRepository.updateStatus(eventId, EVENT_STATUS.REJECTED);
+
+    // Send rejection email notification to NGO
+    try {
+      const ngoEmail = event.creatorEmail || event.createdBy?.email;
+      if (ngoEmail) {
+        await emailService.sendEventRejectionEmail(event, ngoEmail);
+        logger.info(`Rejection email sent to: ${ngoEmail}`);
+      } else {
+        logger.warn(`No email found for event ${eventId}`);
+      }
+    } catch (error) {
+      logger.error('Failed to send rejection email:', error);
+      // Don't fail the rejection if email fails
+    }
+
     logger.info(`Event rejected: ${eventId}`);
 
     return {
@@ -196,6 +266,13 @@ class EventService {
 
     logger.info(`Event updated: ${eventId}`);
 
+    // Invalidate cache
+    cache.delete(cacheKeys.event(eventId));
+    cache.deletePattern(`events:${event.location}:`);
+    if (location && location !== event.location) {
+      cache.deletePattern(`events:${location}:`);
+    }
+
     return {
       message: 'Event updated successfully',
       event: updatedEvent,
@@ -203,7 +280,7 @@ class EventService {
   }
 
   /**
-   * Delete event
+   * Delete event (NGO - must own the event)
    */
   async deleteEvent(eventId, ngoId) {
     const event = await eventRepository.findById(eventId);
@@ -217,7 +294,22 @@ class EventService {
     }
 
     await eventRepository.delete(eventId);
-    logger.info(`Event deleted: ${eventId}`);
+    logger.info(`Event deleted by NGO: ${eventId}`);
+
+    return { message: 'Event deleted successfully' };
+  }
+
+  /**
+   * Delete event (Admin - can delete any event)
+   */
+  async deleteEventByAdmin(eventId) {
+    const event = await eventRepository.findById(eventId);
+    if (!event) {
+      throw new NotFoundError('Event not found');
+    }
+
+    await eventRepository.delete(eventId);
+    logger.info(`Event deleted by admin: ${eventId}`);
 
     return { message: 'Event deleted successfully' };
   }
@@ -238,6 +330,9 @@ class EventService {
 
     const updatedEvent = await eventRepository.addLike(eventId, userId);
     logger.info(`Event ${eventId} liked by user ${userId}`);
+
+    // Invalidate event cache
+    cache.delete(cacheKeys.event(eventId));
 
     return {
       message: 'Event liked successfully',
@@ -342,7 +437,133 @@ class EventService {
 
     return {
       message: 'Reply added successfully',
-      event: updatedEvent,
+      reply: updatedEvent.comments.id(commentId).replies[updatedEvent.comments.id(commentId).replies.length - 1],
+    };
+  }
+
+  /**
+   * Like comment
+   */
+  async likeComment(eventId, commentId, userId) {
+    const event = await eventRepository.findById(eventId);
+    if (!event) {
+      throw new NotFoundError('Event not found');
+    }
+
+    const comment = event.comments.id(commentId);
+    if (!comment) {
+      throw new NotFoundError('Comment not found');
+    }
+
+    // Check if already liked
+    if (comment.likedBy && comment.likedBy.includes(userId)) {
+      throw new BadRequestError('User has already liked this comment');
+    }
+
+    comment.likes = (comment.likes || 0) + 1;
+    comment.likedBy = comment.likedBy || [];
+    comment.likedBy.push(userId);
+    
+    await event.save();
+    logger.info(`Comment ${commentId} liked by user ${userId}`);
+
+    return {
+      message: 'Comment liked successfully',
+      comment,
+    };
+  }
+
+  /**
+   * Unlike comment
+   */
+  async unlikeComment(eventId, commentId, userId) {
+    const event = await eventRepository.findById(eventId);
+    if (!event) {
+      throw new NotFoundError('Event not found');
+    }
+
+    const comment = event.comments.id(commentId);
+    if (!comment) {
+      throw new NotFoundError('Comment not found');
+    }
+
+    // Check if not liked
+    if (!comment.likedBy || !comment.likedBy.includes(userId)) {
+      throw new BadRequestError('User has not liked this comment');
+    }
+
+    comment.likes = Math.max((comment.likes || 1) - 1, 0);
+    comment.likedBy = comment.likedBy.filter(id => id.toString() !== userId.toString());
+    
+    await event.save();
+    logger.info(`Comment ${commentId} unliked by user ${userId}`);
+
+    return {
+      message: 'Comment unliked successfully',
+      comment,
+    };
+  }
+
+  /**
+   * Update comment
+   */
+  async updateComment(eventId, commentId, userId, text) {
+    const event = await eventRepository.findById(eventId);
+    if (!event) {
+      throw new NotFoundError('Event not found');
+    }
+
+    const comment = event.comments.id(commentId);
+    if (!comment) {
+      throw new NotFoundError('Comment not found');
+    }
+
+    // Check if user is the comment owner
+    if (comment.userId.toString() !== userId.toString()) {
+      throw new BadRequestError('You can only edit your own comments');
+    }
+
+    const updatedEvent = await eventRepository.updateComment(eventId, commentId, text);
+    if (!updatedEvent) {
+      throw new NotFoundError('Failed to update comment');
+    }
+
+    logger.info(`Comment ${commentId} updated by user ${userId}`);
+
+    return {
+      message: 'Comment updated successfully',
+      comment: updatedEvent.comments.id(commentId),
+    };
+  }
+
+  /**
+   * Delete comment
+   */
+  async deleteComment(eventId, commentId, userId) {
+    const event = await eventRepository.findById(eventId);
+    if (!event) {
+      throw new NotFoundError('Event not found');
+    }
+
+    const comment = event.comments.id(commentId);
+    if (!comment) {
+      throw new NotFoundError('Comment not found');
+    }
+
+    // Check if user is the comment owner
+    if (comment.userId.toString() !== userId.toString()) {
+      throw new BadRequestError('You can only delete your own comments');
+    }
+
+    const updatedEvent = await eventRepository.deleteComment(eventId, commentId);
+    if (!updatedEvent) {
+      throw new NotFoundError('Failed to delete comment');
+    }
+
+    logger.info(`Comment ${commentId} deleted by user ${userId}`);
+
+    return {
+      message: 'Comment deleted successfully',
     };
   }
 }

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_URL } from "../../config/api.config";
+import { authAPI } from "../../services/api";
 import Toast from "../../components/Toast";
 
 const RegisterNGO = () => {
@@ -15,6 +15,9 @@ const RegisterNGO = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [toast, setToast] = useState(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState(null);
+  const emailCheckTimeout = useRef(null);
   const navigate = useNavigate();
 
   const validatePassword = (password) => {
@@ -30,6 +33,54 @@ const RegisterNGO = () => {
   const passwordRequirements = validatePassword(formData.password);
   const isPasswordValid = Object.values(passwordRequirements).every(Boolean);
 
+  // Check email availability with debouncing
+  useEffect(() => {
+    if (formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      // Clear previous timeout
+      if (emailCheckTimeout.current) {
+        clearTimeout(emailCheckTimeout.current);
+      }
+
+      // Set new timeout for debouncing
+      emailCheckTimeout.current = setTimeout(async () => {
+        setEmailChecking(true);
+        try {
+          const response = await authAPI.checkEmail(formData.email);
+          const { available, message } = response.data.data;
+          setEmailAvailable(available);
+          
+          if (!available) {
+            setErrors(prev => ({ 
+              ...prev, 
+              email: message
+            }));
+          } else {
+            // Clear email error if it was about availability
+            setErrors(prev => {
+              const newErrors = { ...prev };
+              if (newErrors.email?.includes('already registered')) {
+                delete newErrors.email;
+              }
+              return newErrors;
+            });
+          }
+        } catch (error) {
+          console.error('Error checking email:', error);
+        } finally {
+          setEmailChecking(false);
+        }
+      }, 500); // 500ms debounce
+    } else {
+      setEmailAvailable(null);
+    }
+
+    return () => {
+      if (emailCheckTimeout.current) {
+        clearTimeout(emailCheckTimeout.current);
+      }
+    };
+  }, [formData.email]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -37,6 +88,11 @@ const RegisterNGO = () => {
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
+    }
+
+    // Reset email availability when email changes
+    if (name === 'email') {
+      setEmailAvailable(null);
     }
   };
 
@@ -85,6 +141,12 @@ const RegisterNGO = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check if email is available before submitting
+    if (emailAvailable === false) {
+      setToast({ message: "Please use a different email address", type: "error" });
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -93,35 +155,25 @@ const RegisterNGO = () => {
       // Remove confirmPassword before sending to backend
       const { confirmPassword, ...registrationData } = formData;
       
-      const response = await fetch(`${API_URL}/auth/register/ngo`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registrationData),
-      });
+      const response = await authAPI.registerNGO(registrationData);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setToast({ message: "Registration successful! Redirecting to login...", type: "success" });
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        // Handle backend validation errors
-        if (data.errors && Array.isArray(data.errors)) {
-          const backendErrors = {};
-          data.errors.forEach(err => {
-            backendErrors[err.field] = err.message;
-          });
-          setErrors(backendErrors);
-          setToast({ message: "Please fix the errors in the form", type: "error" });
-        } else {
-          setToast({ message: data.message || "Registration failed. Please try again.", type: "error" });
-        }
-      }
+      setToast({ message: "Registration successful! Redirecting to login...", type: "success" });
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (error) {
       console.error("Registration failed:", error);
-      setToast({ message: "An error occurred. Please check your connection and try again.", type: "error" });
+      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+      setToast({ message: errorMessage, type: "error" });
+      
+      // Handle backend validation errors
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const backendErrors = {};
+        error.response.data.errors.forEach(err => {
+          backendErrors[err.field] = err.message;
+        });
+        setErrors(backendErrors);
+      }
     }
   };
 
@@ -168,18 +220,42 @@ const RegisterNGO = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              placeholder="ngo@example.com"
-              onChange={handleChange}
-              className={`w-full p-3 border ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition`}
-            />
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                placeholder="ngo@example.com"
+                onChange={handleChange}
+                className={`w-full p-3 pr-10 border ${
+                  errors.email ? "border-red-500" : 
+                  emailAvailable === true ? "border-green-500" :
+                  "border-gray-300"
+                } rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition`}
+              />
+              {emailChecking && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+                </div>
+              )}
+              {!emailChecking && emailAvailable === true && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 text-xl">
+                  ✓
+                </div>
+              )}
+              {!emailChecking && emailAvailable === false && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500 text-xl">
+                  ✗
+                </div>
+              )}
+            </div>
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
+            {!errors.email && emailAvailable === true && (
+              <p className="text-green-600 text-sm mt-1 flex items-center">
+                <span className="mr-1">✓</span> Email is available
+              </p>
             )}
           </div>
 

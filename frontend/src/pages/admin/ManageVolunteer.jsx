@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "../../config/api.config";
+import Toast from "../../components/Toast";
 
 const ManageVolunteer = () => {
   const [users, setUsers] = useState([]);
+  const [toast, setToast] = useState(null);
 
   // Fetch users from the backend
   useEffect(() => {
@@ -23,16 +25,28 @@ const ManageVolunteer = () => {
   }, []);
 
   // Handle delete action
-  const handleDelete = (id) => {
-    fetch(`${API_URL}/users/${id}`, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then(() => {
-        // Remove the deleted user from the state
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/users/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
         setUsers(users.filter((user) => user._id !== id));
-      })
-      .catch((error) => console.error("Error deleting user:", error));
+        setToast({ message: "User deleted successfully!", type: "success" });
+      } else {
+        console.error("Delete failed:", data);
+        setToast({ message: data.message || "Failed to delete user", type: "error" });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      setToast({ message: "Failed to delete user. Please try again.", type: "error" });
+    }
   };
 
   // Handle block action
@@ -41,30 +55,40 @@ const ManageVolunteer = () => {
       const response = await fetch(`${API_URL}/users/${id}/block`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Include authentication cookies
         body: JSON.stringify({ isBlocked: !isCurrentlyBlocked }), // Toggle block/unblock
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Update the user's blocked status in the state
         setUsers((prevUsers) =>
           prevUsers.map((user) =>
             user._id === id ? { ...user, isBlocked: !isCurrentlyBlocked } : user
           )
         );
-        // alert(data.message); 
+        setToast({ 
+          message: `User ${!isCurrentlyBlocked ? 'blocked' : 'unblocked'} successfully!`, 
+          type: "success" 
+        });
       } else {
-        // alert(data.message || "Failed to update user status");
+        setToast({ message: data.message || "Failed to update user status", type: "error" });
       }
     } catch (error) {
       console.error("Error blocking/unblocking user:", error);
-      alert("An error occurred. Please try again.");
+      setToast({ message: "An error occurred. Please try again.", type: "error" });
     }
   };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <h2 className="text-3xl font-semibold text-gray-800 mb-6">Manage Volunteer Users</h2>
       {users.length === 0 ? (
         <p className="text-gray-600">No users found.</p>

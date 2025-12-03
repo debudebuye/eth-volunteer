@@ -21,6 +21,15 @@ class EventRepository {
   }
 
   /**
+   * Find event by ID (optimized - without arrays)
+   */
+  async findByIdLean(id) {
+    return await Event.findById(id)
+      .select('-participants -likedBy -followers -comments')
+      .lean();
+  }
+
+  /**
    * Find all events with optional filters
    */
   async findAll(filter = {}) {
@@ -28,17 +37,31 @@ class EventRepository {
   }
 
   /**
+   * Find all events (optimized - for lists)
+   */
+  async findAllLean(filter = {}) {
+    return await Event.find(filter)
+      .select('name description date location image status participantCount commentCount likesCount creatorName')
+      .lean();
+  }
+
+  /**
    * Find events by status
    */
   async findByStatus(status) {
-    return await Event.find({ status });
+    return await Event.find({ status })
+      .select('name description date location image status participantCount commentCount likesCount creatorName createdAt')
+      .lean();
   }
 
   /**
    * Find approved events
    */
   async findApproved() {
-    return await Event.find({ status: EVENT_STATUS.APPROVED });
+    return await Event.find({ status: EVENT_STATUS.APPROVED })
+      .select('name description date location image status participantCount commentCount likes likesCount creatorName createdAt participants likedBy')
+      .sort({ date: 1 })
+      .lean();
   }
 
   /**
@@ -59,7 +82,10 @@ class EventRepository {
    * Find events by creator (NGO)
    */
   async findByCreator(creatorId) {
-    return await Event.find({ createdBy: creatorId });
+    return await Event.find({ createdBy: creatorId })
+      .select('name description date location image status participantCount commentCount likes likesCount createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
   }
 
   /**
@@ -86,18 +112,18 @@ class EventRepository {
     const skip = (page - 1) * limit;
     
     // Use case-insensitive contains match for flexible location matching
-    // This allows "Addis" to match "addis", "Addis Ababa", etc.
     const query = {
       status,
-      location: { $regex: location, $options: 'i' } // Contains location (case-insensitive)
+      location: { $regex: location, $options: 'i' }
     };
     
     const [events, total] = await Promise.all([
       Event.find(query)
-        .sort({ date: 1 }) // Sort by upcoming events
+        .select('name description date location image status participantCount commentCount likes likesCount creatorName createdAt participants likedBy')
+        .sort({ date: 1 })
         .skip(skip)
         .limit(limit)
-        .lean(), // Use lean() for better performance (returns plain JS objects)
+        .lean(), // Returns plain JS objects (30% faster)
       Event.countDocuments(query)
     ]);
     
@@ -157,7 +183,7 @@ class EventRepository {
     return await Event.findByIdAndUpdate(
       eventId,
       { 
-        $inc: { likes: 1 },
+        $inc: { likes: 1, likesCount: 1 },
         $addToSet: { likedBy: userId }
       },
       { new: true }
@@ -171,7 +197,7 @@ class EventRepository {
     return await Event.findByIdAndUpdate(
       eventId,
       { 
-        $inc: { likes: -1 },
+        $inc: { likes: -1, likesCount: -1 },
         $pull: { likedBy: userId }
       },
       { new: true }
@@ -195,7 +221,10 @@ class EventRepository {
   async addComment(eventId, commentData) {
     return await Event.findByIdAndUpdate(
       eventId,
-      { $push: { comments: commentData } },
+      { 
+        $push: { comments: commentData },
+        $inc: { commentCount: 1 }
+      },
       { new: true }
     );
   }
@@ -215,11 +244,65 @@ class EventRepository {
   }
 
   /**
+   * Update comment text
+   */
+  async updateComment(eventId, commentId, text) {
+    const event = await Event.findById(eventId);
+    if (!event) return null;
+
+    const comment = event.comments.id(commentId);
+    if (!comment) return null;
+
+    comment.text = text;
+    return await event.save();
+  }
+
+  /**
+   * Delete comment
+   */
+  async deleteComment(eventId, commentId) {
+    return await Event.findByIdAndUpdate(
+      eventId,
+      { 
+        $pull: { comments: { _id: commentId } },
+        $inc: { commentCount: -1 }
+      },
+      { new: true }
+    );
+  }
+
+  /**
    * Get event with comments populated
    */
   async findByIdWithComments(eventId) {
     return await Event.findById(eventId)
       .populate('comments.userId', 'name profileImage');
+  }
+
+  /**
+   * Check if user is participant (optimized)
+   */
+  async isUserParticipant(eventId, userId) {
+    return await Event.exists({ _id: eventId, participants: userId });
+  }
+
+  /**
+   * Check if user liked event (optimized)
+   */
+  async hasUserLiked(eventId, userId) {
+    return await Event.exists({ _id: eventId, likedBy: userId });
+  }
+
+  /**
+   * Batch check participation for multiple events
+   */
+  async batchCheckParticipation(eventIds, userId) {
+    const events = await Event.find({
+      _id: { $in: eventIds },
+      participants: userId
+    }).select('_id').lean();
+    
+    return new Set(events.map(e => e._id.toString()));
   }
 }
 

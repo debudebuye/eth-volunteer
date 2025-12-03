@@ -158,12 +158,21 @@ class EventController {
   });
 
   /**
-   * Delete event
+   * Delete event (NGO)
    * DELETE /api/events/delete/:eventId
    */
   deleteEvent = asyncHandler(async (req, res) => {
     const ngoId = req.user.id;
     const result = await eventService.deleteEvent(req.params.eventId, ngoId);
+    successResponse(res, result, result.message);
+  });
+
+  /**
+   * Delete event (Admin)
+   * DELETE /api/events/admin/delete/:eventId
+   */
+  deleteEventByAdmin = asyncHandler(async (req, res) => {
+    const result = await eventService.deleteEventByAdmin(req.params.eventId);
     successResponse(res, result, result.message);
   });
 
@@ -222,11 +231,58 @@ class EventController {
    */
   addReply = asyncHandler(async (req, res) => {
     const { eventId, commentId } = req.params;
-    const { text } = req.body;
-    const ngoId = req.user.id;
+    const { userId, text } = req.body;
     
-    const result = await eventService.addReply(eventId, commentId, ngoId, text);
+    const result = await eventService.addReply(eventId, commentId, userId, text);
     successResponse(res, result, result.message, HTTP_STATUS.CREATED);
+  });
+
+  /**
+   * Like comment
+   * POST /api/events/:eventId/comments/:commentId/like
+   */
+  likeComment = asyncHandler(async (req, res) => {
+    const { eventId, commentId } = req.params;
+    const { userId } = req.body;
+    
+    const result = await eventService.likeComment(eventId, commentId, userId);
+    successResponse(res, result, result.message);
+  });
+
+  /**
+   * Unlike comment
+   * POST /api/events/:eventId/comments/:commentId/unlike
+   */
+  unlikeComment = asyncHandler(async (req, res) => {
+    const { eventId, commentId } = req.params;
+    const { userId } = req.body;
+    
+    const result = await eventService.unlikeComment(eventId, commentId, userId);
+    successResponse(res, result, result.message);
+  });
+
+  /**
+   * Update comment
+   * PUT /api/events/:eventId/comments/:commentId
+   */
+  updateComment = asyncHandler(async (req, res) => {
+    const { eventId, commentId } = req.params;
+    const { userId, text } = req.body;
+    
+    const result = await eventService.updateComment(eventId, commentId, userId, text);
+    successResponse(res, result, result.message);
+  });
+
+  /**
+   * Delete comment
+   * DELETE /api/events/:eventId/comments/:commentId
+   */
+  deleteComment = asyncHandler(async (req, res) => {
+    const { eventId, commentId } = req.params;
+    const { userId } = req.body;
+    
+    const result = await eventService.deleteComment(eventId, commentId, userId);
+    successResponse(res, result, result.message);
   });
 }
 

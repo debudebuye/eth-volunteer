@@ -10,9 +10,16 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
     navigate(`/event/${event._id}`);
   };
 
-  // Construct proper image URL
+  // Construct proper image URL - extract filename from full path
   const imageUrl = event.image 
-    ? `${API_BASE_URL}${event.image.startsWith('/') ? event.image : '/' + event.image}`
+    ? (() => {
+        const imagePath = event.image;
+        // Extract just the filename from the full Windows/Unix path
+        const filename = imagePath.includes('\\') || imagePath.includes('/') 
+          ? imagePath.split(/[/\\]/).pop() 
+          : imagePath;
+        return `${API_BASE_URL}/uploads/${filename}`;
+      })()
     : 'https://via.placeholder.com/400x200?text=No+Image';
 
   // Format date
@@ -23,7 +30,12 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
     day: 'numeric'
   });
 
-  const isLiked = event.likedBy?.includes(user?._id);
+  // Convert likedBy to strings for proper comparison
+  const likedByStrings = (event.likedBy || []).map(id => 
+    typeof id === 'object' ? id.toString() : String(id)
+  );
+  const userIdString = String(user?._id || '');
+  const isLiked = likedByStrings.includes(userIdString);
   const isJoined = joinedEvents.includes(event._id);
 
   return (
@@ -87,7 +99,7 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
         {/* Participants Count */}
         <div className="flex items-center gap-2 mb-4 text-gray-700">
           <FaUsers className="text-green-600" />
-          <span className="font-medium">{event.participants?.length || 0} Participants</span>
+          <span className="font-medium">{event.participantCount ?? event.participants?.length ?? 0} Participants</span>
         </div>
 
         {/* Action Buttons */}
@@ -102,7 +114,7 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
             }`}
           >
             <FaThumbsUp className={isLiked ? 'text-red-600' : 'text-gray-400'} />
-            <span>{event.likes || 0}</span>
+            <span>{likes[event._id] ?? event.likes ?? 0}</span>
           </button>
 
           {/* Comment Button */}
@@ -111,7 +123,7 @@ const EventCard = ({ event, user, likes, joinedEvents, handleLike, handleJoin })
             className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all duration-200"
           >
             <FaComment className="text-gray-400" />
-            <span>{event.comments?.length || 0}</span>
+            <span>{event.commentCount ?? event.comments?.length ?? 0}</span>
           </button>
 
           {/* Join/Unjoin Button */}

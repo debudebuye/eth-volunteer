@@ -5,11 +5,13 @@ const ngoSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   organization: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
   role: { type: String, enum: ['ngo'], required: true },
   status: { type: String, enum: ["active", "blocked"], default: "active" },
-
-});
+  
+  // Reverse reference for efficient queries
+  events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+  eventCount: { type: Number, default: 0 },
+}, { timestamps: true }); // Add timestamps (replaces manual createdAt)
 
 // Indexes for performance optimization
 // Note: email already has unique index, no need to add explicit index

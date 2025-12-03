@@ -4,17 +4,19 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  location: { type: String, default: "defaultLocation" }, // Add this line
-  isBlocked: { type: Boolean, default: false }, // To track if the user is blocked
-  role: { type: String, default: "user" }, // Optional: Add roles like "admin", "user", etc.
-  createdAt: { type: Date, default: Date.now },
+  location: { type: String, default: "defaultLocation" },
+  isBlocked: { type: Boolean, default: false },
+  role: { type: String, default: "user" },
   joinedEvents: [
     {
-      type: mongoose.Schema.Types.ObjectId, // Store event IDs
-      ref: "Event", // Reference the Event model
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
     },
-  ], // Array of joined event IDs
-});
+  ],
+  
+  // Denormalized count for performance
+  joinedEventsCount: { type: Number, default: 0 },
+}, { timestamps: true }); // Add timestamps (replaces manual createdAt)
 
 // Indexes for performance optimization
 // Note: email already has unique index, no need to add explicit index

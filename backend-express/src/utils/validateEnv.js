@@ -13,7 +13,7 @@ const validateEnv = () => {
     'FRONTEND_URL',
     'BACKEND_BASEURL',
     'EMAIL_USER',
-    'EMAIL_PASS'
+    'EMAIL_PASSWORD'
   ];
 
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);

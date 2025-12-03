@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { API_URL } from "../../config/api.config";
+import { eventsAPI } from "../../services/api";
+import toast from "../../utils/toast";
 
 const RejectedEvents = () => {
   const [rejectedEvents, setRejectedEvents] = useState([]);
@@ -7,68 +8,50 @@ const RejectedEvents = () => {
   const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/events?status=rejected`, {
-      credentials: 'include', // Send cookies for authentication
-    })
-      .then((res) => res.json())
-      .then((response) => {
+    const fetchRejectedEvents = async () => {
+      try {
+        const response = await eventsAPI.getRejected();
         // Handle response structure: { success, data: { events: [...] } }
-        const data = response.data || response;
+        const data = response.data.data || response.data;
         const eventsList = data.events || data;
         setRejectedEvents(Array.isArray(eventsList) ? eventsList : []);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching rejected events:", error);
-        setRejectedEvents([]); // Set empty array on error
-      });
+        setRejectedEvents([]);
+      }
+    };
+
+    fetchRejectedEvents();
   }, []);
 
   const unrejectEvent = async (eventId) => {
     try {
-      const response = await fetch(
-        `${API_URL}/events/unreject/${eventId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to unreject the event");
-      }
-      // After successful update, refetch rejected events
+      await eventsAPI.unreject(eventId);
+      // After successful update, remove from rejected events list
       const updatedEvents = rejectedEvents.filter(
         (event) => event._id !== eventId
       );
       setRejectedEvents(updatedEvents);
+      toast.success("Event moved back to pending successfully");
     } catch (error) {
       console.error("Error unrejecting event:", error);
+      toast.error("Failed to unreject the event");
     }
   };
 
   const deleteEvent = async (eventId) => {
     try {
-      const response = await fetch(
-        `${API_URL}/events/delete/${eventId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to delete the event");
-      }
+      await eventsAPI.delete(eventId);
       // After successful deletion, remove the event from the state
       const updatedEvents = rejectedEvents.filter(
         (event) => event._id !== eventId
       );
       setRejectedEvents(updatedEvents);
-      setIsDeleteDialogOpen(false); // Close the delete dialog
+      setIsDeleteDialogOpen(false);
+      toast.success("Event deleted successfully");
     } catch (error) {
       console.error("Error deleting event:", error);
+      toast.error("Failed to delete the event");
     }
   };
 
